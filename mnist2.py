@@ -23,6 +23,7 @@ import theano
 import theano.tensor as T
 
 import lasagne
+from get_cifar10 import *
 
 
 # ################## Download and prepare the MNIST dataset ##################
