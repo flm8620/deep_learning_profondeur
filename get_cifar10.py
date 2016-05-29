@@ -4,7 +4,7 @@ import numpy as np
 
 def get_cifar10():
     file_train = []
-    for i in [1, 2, 3, 4]:
+    for i in [1]:
         file_train.append('cifar-10-batches-py/data_batch_' + str(i))
     file_val = 'cifar-10-batches-py/data_batch_5'
     file_test = 'cifar-10-batches-py/test_batch'
@@ -36,4 +36,16 @@ def get_cifar10():
     train_x = train_x.astype(np.float32)
     val_x = val_x.astype(np.float32)
     test_x = test_x.astype(np.float32)
+
+    all_x = np.concatenate((train_x, val_x, test_x), axis=0)
+    color_mean = all_x.mean(axis=(0, 2, 3))
+    train_x[:, 0, :, :] -= color_mean[0]
+    train_x[:, 1, :, :] -= color_mean[1]
+    train_x[:, 2, :, :] -= color_mean[2]
+    val_x[:, 0, :, :] -= color_mean[0]
+    val_x[:, 1, :, :] -= color_mean[1]
+    val_x[:, 2, :, :] -= color_mean[2]
+    test_x[:, 0, :, :] -= color_mean[0]
+    test_x[:, 1, :, :] -= color_mean[1]
+    test_x[:, 2, :, :] -= color_mean[2]
     return train_x, train_y, val_x, val_y, test_x, test_y
