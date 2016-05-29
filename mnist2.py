@@ -289,9 +289,9 @@ def main(model='cifar', num_epochs=20):
     print("Loading data...")
     if model == 'cifar':
         X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
-        y_train = one_hot(y_train, num_class)
-        y_val = one_hot(y_val, num_class)
-        y_test = one_hot(y_test, num_class)
+        #y_train = one_hot(y_train, num_class)
+        #y_val = one_hot(y_val, num_class)
+        #y_test = one_hot(y_test, num_class)
     else:
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
 
@@ -301,10 +301,10 @@ def main(model='cifar', num_epochs=20):
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
-    if model == 'cifar':
-        target_var = T.fmatrix('targets_m')
-    else:
-        target_var = T.ivector('targets')
+    #if model == 'cifar':
+    #    target_var = T.fmatrix('targets_m')
+    #else:
+    target_var = T.ivector('targets')
 
     # Create neural network model (depending on first command line parameter)
     print("Building model and compiling functions...")
@@ -319,7 +319,7 @@ def main(model='cifar', num_epochs=20):
     elif model == 'lenet':
         network = build_lenet5(input_var)
     elif model == 'cifar':
-        net = cifar10_nin.build_quick(input_var)
+        net = cifar10_nin.build_model2(input_var)
         network = net['output']
     else:
         print("Unrecognized model type %r." % model)
@@ -328,8 +328,8 @@ def main(model='cifar', num_epochs=20):
     # Create a loss expression for training, i.e., a scalar objective we want
     # to minimize (for our multi-class problem, it is the cross-entropy loss):
     prediction = lasagne.layers.get_output(network)
-    # loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
-    loss = lasagne.objectives.squared_error(prediction, target_var)
+    loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
+    #loss = lasagne.objectives.squared_error(prediction, target_var)
     loss = loss.mean()
     # We could add some weight decay as well here, see lasagne.regularization.
 
@@ -344,8 +344,8 @@ def main(model='cifar', num_epochs=20):
     # here is that we do a deterministic forward pass through the network,
     # disabling dropout layers.
     test_prediction = lasagne.layers.get_output(network, deterministic=True)
-    test_loss = lasagne.objectives.squared_error(test_prediction, target_var)
-    # test_loss = lasagne.objectives.categorical_crossentropy(test_prediction, target_var)
+    #test_loss = lasagne.objectives.squared_error(test_prediction, target_var)
+    test_loss = lasagne.objectives.categorical_crossentropy(test_prediction, target_var)
     test_loss = test_loss.mean()
     # As a bonus, also create an expression for the classification accuracy:
     test_acc = T.mean(T.eq(T.argmax(test_prediction, axis=1), target_var),

@@ -72,7 +72,7 @@ def build_model2(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.GlorotUniform(),
+                             W=lasagne.init.Normal(std=0.001),
                              nonlinearity=lasagne.nonlinearities.rectify)
     net['pool1'] = PoolLayer(net['conv1'],
                              pool_size=3,
@@ -85,7 +85,7 @@ def build_model2(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.GlorotUniform(),
+                             W=lasagne.init.Normal(std=0.01),
                              nonlinearity=lasagne.nonlinearities.rectify)
     net['pool2'] = PoolLayer(net['conv2'],
                              pool_size=3,
@@ -99,7 +99,7 @@ def build_model2(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.GlorotUniform(),
+                             W=lasagne.init.Normal(std=0.01),
                              nonlinearity=lasagne.nonlinearities.rectify)
     net['pool3'] = PoolLayer(net['conv3'],
                              pool_size=3,
@@ -109,6 +109,7 @@ def build_model2(input_var=None):
     net['output'] = lasagne.layers.DenseLayer(
         net['pool3'],
         num_units=10,
+        W=lasagne.init.Normal(std=0.01),
         nonlinearity=lasagne.nonlinearities.softmax)
 
     return net
