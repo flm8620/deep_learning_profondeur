@@ -152,7 +152,7 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 # more functions to better separate the code, but it wouldn't make it any
 # easier to read.
 
-def main(model='cifar', num_epochs=20, model_file=None):
+def main(model='lenet', num_epochs=20, model_file=None):
     batch_size = 64
     seperate = True
     print('batch_size=', batch_size)
@@ -160,8 +160,10 @@ def main(model='cifar', num_epochs=20, model_file=None):
     print("Loading data...")
     if model == 'cifar':
         X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
-    else:
+    elif model == 'lenet':
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
+    else:
+        assert False
 
     if seperate:
         X_train_1, y_train_1, X_train_2, y_train_2 = seperate_data(X_train, y_train)
