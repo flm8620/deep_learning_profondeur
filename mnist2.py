@@ -294,7 +294,7 @@ def main(model='cifar', num_epochs=20):
     elif model == 'lenet':
         network = build_lenet5(input_var)
     elif model == 'cifar':
-        net = cifar10_nin.build_model()
+        net = cifar10_nin.build_model(input_var)
         network = net['output']
     else:
         print("Unrecognized model type %r." % model)
