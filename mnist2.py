@@ -271,7 +271,7 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 
 def main(model='cifar', num_epochs=20):
 
-    batch_size = 1000
+    batch_size = 100
     print('batch_size=' , batch_size)
     # Load the dataset
     print("Loading data...")
@@ -319,7 +319,7 @@ def main(model='cifar', num_epochs=20):
     # Descent (SGD) with Nesterov momentum, but Lasagne offers plenty more.
     params = lasagne.layers.get_all_params(network, trainable=True)
     updates = lasagne.updates.nesterov_momentum(
-        loss, params, learning_rate=0.01, momentum=0.9)
+        loss, params, learning_rate=0.001, momentum=0.9)
 
     # Create a loss expression for validation/testing. The crucial difference
     # here is that we do a deterministic forward pass through the network,
