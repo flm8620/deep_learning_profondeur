@@ -301,7 +301,10 @@ def main(model='cifar', num_epochs=20):
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
-    target_var = T.ivector('targets')
+    if model == 'cifar':
+        target_var = T.fmatrix('targets_m')
+    else:
+        target_var = T.ivector('targets')
 
     # Create neural network model (depending on first command line parameter)
     print("Building model and compiling functions...")
