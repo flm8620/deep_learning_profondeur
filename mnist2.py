@@ -273,7 +273,7 @@ def one_hot(x, n):
     """
     x = np.array(x)
     assert x.ndim == 1
-    return np.eye(n)[x]
+    return np.eye(n)[x].astype(np.float32)
 
 
 # ############################## Main program ################################
