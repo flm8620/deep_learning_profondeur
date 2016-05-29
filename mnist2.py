@@ -270,12 +270,19 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 # easier to read.
 
 def main(model='cifar', num_epochs=20):
+
+    batch_size = 1000
+    print('batch_size=' , batch_size)
     # Load the dataset
     print("Loading data...")
     if model == 'cifar':
         X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
     else:
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
+
+    print(len(X_train), 'train images')
+    print(len(X_val), 'val images')
+    print(len(X_test), 'test images')
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
@@ -341,7 +348,7 @@ def main(model='cifar', num_epochs=20):
         train_batches = 0
         start_time = time.time()
         print("Training stage:")
-        for batch in iterate_minibatches(X_train, y_train, 500, shuffle=True):
+        for batch in iterate_minibatches(X_train, y_train, batch_size, shuffle=True):
             inputs, targets = batch
             this_train_err = train_fn(inputs, targets)
             train_err += this_train_err
@@ -353,7 +360,7 @@ def main(model='cifar', num_epochs=20):
         val_acc = 0
         val_batches = 0
         print("Validation stage:")
-        for batch in iterate_minibatches(X_val, y_val, 500, shuffle=False):
+        for batch in iterate_minibatches(X_val, y_val, batch_size, shuffle=False):
             inputs, targets = batch
             err, acc = val_fn(inputs, targets)
             val_err += err
@@ -370,13 +377,14 @@ def main(model='cifar', num_epochs=20):
             val_acc / val_batches * 100))
 
         # Optionally, you could now dump the network weights to a file like this:
+        print('model saved to '+model+'_model.npz')
         np.savez(model+'_model.npz', *(lasagne.layers.get_all_param_values(network)))
 
     # After training, we compute and print the test error:
     test_err = 0
     test_acc = 0
     test_batches = 0
-    for batch in iterate_minibatches(X_test, y_test, 500, shuffle=False):
+    for batch in iterate_minibatches(X_test, y_test, batch_size, shuffle=False):
         inputs, targets = batch
         err, acc = val_fn(inputs, targets)
         test_err += err
