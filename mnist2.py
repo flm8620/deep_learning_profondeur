@@ -27,6 +27,7 @@ from get_cifar10 import *
 import cifar10_nin
 import time
 
+
 # ################## Download and prepare the MNIST dataset ##################
 # This is just some way of getting the MNIST dataset from an online location
 # and loading it into numpy arrays. It doesn't involve Lasagne at all.
@@ -264,19 +265,33 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
         yield inputs[excerpt], targets[excerpt]
 
 
+# square loss
+
+def one_hot(x, n):
+    """
+    convert index representation to one-hot representation
+    """
+    x = np.array(x)
+    assert x.ndim == 1
+    return np.eye(n)[x]
+
+
 # ############################## Main program ################################
 # Everything else will be handled in our main program now. We could pull out
 # more functions to better separate the code, but it wouldn't make it any
 # easier to read.
 
 def main(model='cifar', num_epochs=20):
-
     batch_size = 100
-    print('batch_size=' , batch_size)
+    num_class = 10
+    print('batch_size=', batch_size)
     # Load the dataset
     print("Loading data...")
     if model == 'cifar':
         X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
+        y_train = one_hot(y_train, num_class)
+        y_val = one_hot(y_val, num_class)
+        y_test = one_hot(y_test, num_class)
     else:
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
 
@@ -310,7 +325,8 @@ def main(model='cifar', num_epochs=20):
     # Create a loss expression for training, i.e., a scalar objective we want
     # to minimize (for our multi-class problem, it is the cross-entropy loss):
     prediction = lasagne.layers.get_output(network)
-    loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
+    # loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
+    loss = lasagne.objectives.squared_error(prediction, target_var)
     loss = loss.mean()
     # We could add some weight decay as well here, see lasagne.regularization.
 
@@ -325,8 +341,8 @@ def main(model='cifar', num_epochs=20):
     # here is that we do a deterministic forward pass through the network,
     # disabling dropout layers.
     test_prediction = lasagne.layers.get_output(network, deterministic=True)
-    test_loss = lasagne.objectives.categorical_crossentropy(test_prediction,
-                                                            target_var)
+    test_loss = lasagne.objectives.squared_error(test_prediction, target_var)
+    # test_loss = lasagne.objectives.categorical_crossentropy(test_prediction, target_var)
     test_loss = test_loss.mean()
     # As a bonus, also create an expression for the classification accuracy:
     test_acc = T.mean(T.eq(T.argmax(test_prediction, axis=1), target_var),
@@ -355,7 +371,7 @@ def main(model='cifar', num_epochs=20):
             this_train_err = train_fn(inputs, targets)
             train_err += this_train_err
             train_batches += 1
-            print('train batch',train_batches,'err+=',this_train_err,time.time()-time_batch,'seconds')
+            print('train batch', train_batches, 'err+=', this_train_err, time.time() - time_batch, 'seconds')
 
         # And a full pass over the validation data:
         val_err = 0
@@ -369,7 +385,7 @@ def main(model='cifar', num_epochs=20):
             val_err += err
             val_acc += acc
             val_batches += 1
-            print('valid batch', val_batches, 'err+=', err,'acc++',acc,time.time()-time_batch,'seconds')
+            print('valid batch', val_batches, 'err+=', err, 'acc++', acc, time.time() - time_batch, 'seconds')
 
         # Then we print the results for this epoch:
         print("Epoch {} of {} took {:.3f}s".format(
@@ -380,9 +396,9 @@ def main(model='cifar', num_epochs=20):
             val_acc / val_batches * 100))
 
         # Optionally, you could now dump the network weights to a file like this:
-        print('model saved to '+model+'_model.npz')
-        np.savez(model+'_model'+str(epoch)+'.npz', *(lasagne.layers.get_all_param_values(network)))
-        print('epoch_time ', (time.time()-time_epoch) / 60.,'minutes')
+        print('model saved to ' + model + '_model.npz')
+        np.savez(model + '_model' + str(epoch) + '.npz', *(lasagne.layers.get_all_param_values(network)))
+        print('epoch_time ', (time.time() - time_epoch) / 60., 'minutes')
 
     # After training, we compute and print the test error:
     test_err = 0
