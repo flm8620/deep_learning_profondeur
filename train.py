@@ -118,7 +118,7 @@ def main(model='lenet', num_epochs=20, model_file=None):
             this_train_err = train_fn(inputs, targets)
             train_err += this_train_err
             train_batches += 1
-            print('train batch', train_batches, 'err+=', '{:.5f}'.format(this_train_err),
+            print('train batch', train_batches, 'err+=', '{:.5f}'.format(this_train_err.item()),
                   '{:.2f}'.format(time.time() - time_batch), 'seconds')
 
         val_err = 0
