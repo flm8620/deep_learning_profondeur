@@ -110,25 +110,25 @@ def build_mlp(input_var=None):
     # Add a fully-connected layer of 800 units, using the linear rectifier, and
     # initializing weights with Glorot's scheme (which is the default anyway):
     l_hid1 = lasagne.layers.DenseLayer(
-            l_in_drop, num_units=800,
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.GlorotUniform())
+        l_in_drop, num_units=800,
+        nonlinearity=lasagne.nonlinearities.rectify,
+        W=lasagne.init.GlorotUniform())
 
     # We'll now add dropout of 50%:
     l_hid1_drop = lasagne.layers.DropoutLayer(l_hid1, p=0.5)
 
     # Another 800-unit layer:
     l_hid2 = lasagne.layers.DenseLayer(
-            l_hid1_drop, num_units=800,
-            nonlinearity=lasagne.nonlinearities.rectify)
+        l_hid1_drop, num_units=800,
+        nonlinearity=lasagne.nonlinearities.rectify)
 
     # 50% dropout again:
     l_hid2_drop = lasagne.layers.DropoutLayer(l_hid2, p=0.5)
 
     # Finally, we'll add the fully-connected output layer, of 10 softmax units:
     l_out = lasagne.layers.DenseLayer(
-            l_hid2_drop, num_units=10,
-            nonlinearity=lasagne.nonlinearities.softmax)
+        l_hid2_drop, num_units=10,
+        nonlinearity=lasagne.nonlinearities.softmax)
 
     # Each layer is linked to its incoming layer(s), so we only need to pass
     # the output layer to give access to a network in Lasagne:
@@ -154,7 +154,7 @@ def build_custom_mlp(input_var=None, depth=2, width=800, drop_input=.2,
     nonlin = lasagne.nonlinearities.rectify
     for _ in range(depth):
         network = lasagne.layers.DenseLayer(
-                network, width, nonlinearity=nonlin)
+            network, width, nonlinearity=nonlin)
         if drop_hidden:
             network = lasagne.layers.dropout(network, p=drop_hidden)
     # Output layer:
@@ -176,9 +176,9 @@ def build_cnn(input_var=None):
     # Convolutional layer with 32 kernels of size 5x5. Strided and padded
     # convolutions are supported as well; see the docstring.
     network = lasagne.layers.Conv2DLayer(
-            network, num_filters=32, filter_size=(5, 5),
-            nonlinearity=lasagne.nonlinearities.rectify,
-            W=lasagne.init.GlorotUniform())
+        network, num_filters=32, filter_size=(5, 5),
+        nonlinearity=lasagne.nonlinearities.rectify,
+        W=lasagne.init.GlorotUniform())
     # Expert note: Lasagne provides alternative convolutional layers that
     # override Theano's choice of which implementation to use; for details
     # please see http://lasagne.readthedocs.org/en/latest/user/tutorial.html.
@@ -188,26 +188,27 @@ def build_cnn(input_var=None):
 
     # Another convolution with 32 5x5 kernels, and another 2x2 pooling:
     network = lasagne.layers.Conv2DLayer(
-            network, num_filters=32, filter_size=(5, 5),
-            nonlinearity=lasagne.nonlinearities.rectify)
+        network, num_filters=32, filter_size=(5, 5),
+        nonlinearity=lasagne.nonlinearities.rectify)
     network = lasagne.layers.MaxPool2DLayer(network, pool_size=(2, 2))
 
     # A fully-connected layer of 256 units with 50% dropout on its inputs:
     network = lasagne.layers.DenseLayer(
-            lasagne.layers.dropout(network, p=.5),
-            num_units=256,
-            nonlinearity=lasagne.nonlinearities.rectify)
+        lasagne.layers.dropout(network, p=.5),
+        num_units=256,
+        nonlinearity=lasagne.nonlinearities.rectify)
 
     # And, finally, the 10-unit output layer with 50% dropout on its inputs:
     network = lasagne.layers.DenseLayer(
-            lasagne.layers.dropout(network, p=.5),
-            num_units=10,
-            nonlinearity=lasagne.nonlinearities.softmax)
+        lasagne.layers.dropout(network, p=.5),
+        num_units=10,
+        nonlinearity=lasagne.nonlinearities.softmax)
 
     return network
 
+
 def build_lenet5(input_var=None):
-    #Written by Leman FENG
+    # Written by Leman FENG
     network = lasagne.layers.InputLayer(shape=(None, 1, 28, 28),
                                         input_var=input_var)
 
@@ -236,6 +237,7 @@ def build_lenet5(input_var=None):
         nonlinearity=lasagne.nonlinearities.softmax)
 
     return network
+
 
 # ############################# Batch iterator ###############################
 # This is just a simple helper function iterating over training data in
@@ -271,7 +273,7 @@ def main(model='cifar', num_epochs=20):
     # Load the dataset
     print("Loading data...")
     if model == 'cifar':
-        X_train, y_train, X_val, y_val, X_test, y_test=get_cifar10
+        X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
     else:
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
 
@@ -309,7 +311,7 @@ def main(model='cifar', num_epochs=20):
     # Descent (SGD) with Nesterov momentum, but Lasagne offers plenty more.
     params = lasagne.layers.get_all_params(network, trainable=True)
     updates = lasagne.updates.nesterov_momentum(
-            loss, params, learning_rate=0.01, momentum=0.9)
+        loss, params, learning_rate=0.01, momentum=0.9)
 
     # Create a loss expression for validation/testing. The crucial difference
     # here is that we do a deterministic forward pass through the network,
@@ -405,4 +407,3 @@ if __name__ == '__main__':
         if len(sys.argv) > 2:
             kwargs['num_epochs'] = int(sys.argv[2])
         main(**kwargs)
-
