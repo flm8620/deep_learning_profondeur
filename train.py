@@ -39,7 +39,8 @@ def main():
     parser.add_argument("model", help="model name", choices=['cifar', 'lenet'])
     parser.add_argument('-n', '--num-epochs', type=int, default=20)
     parser.add_argument('-f', '--model-file', help="model file")
-    parser.add_argument('--half', help='split the data and take first part', action='store_true')
+    parser.add_argument('--no-separate', help='split the data', action='store_true')
+    parser.add_argument('--second-part', help='take second part of data instead of the first', action='store_true')
     parser.add_argument('-b', '--batch-size', type=int, default=64)
     parser.add_argument('-l', '--learning-rate', type=float, default=0.01)
     parser.add_argument('-t', '--test-only', action='store_true')
@@ -48,12 +49,13 @@ def main():
 
     model = args.model
     batch_size = args.batch_size
-    separate = args.half
+    separate = not args.no_separate
     model_file = args.model_file
     num_epochs = args.num_epochs
     learning_rate = args.learning_rate
     save_file_name = model + '_model'
     test_only = args.test_only
+    load_first_part = not args.second_part
     if test_only and not model_file:
         print('you need to specify a model file to test')
         exit()
@@ -63,13 +65,15 @@ def main():
         nOutput = 5
     else:
         nOutput = 10
-    load_first_part = True
+
     print('--Parameter--')
     print('  model=', model)
     print('  batch_size=', batch_size)
     print('  num_epochs=', num_epochs)
     print('  learning_rate=', learning_rate)
-    print('  separate data : ', separate)
+    print('  separate data :', separate)
+    if separate:
+        print('    take first or second part of data :', 'first' if load_first_part else 'second')
     print('  model_file : ', model_file)
     print('  nOutput = ', nOutput)
     print('  model will be saved to : ', save_file_name + '*.npz')
