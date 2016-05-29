@@ -11,7 +11,7 @@ import theano.tensor as T
 import lasagne
 
 
-def build_lenet5(input_var=None):
+def build_lenet5(input_var=None, nOutput=10):
     # Written by Leman FENG
     net = {}
 
@@ -39,7 +39,7 @@ def build_lenet5(input_var=None):
     # And, finally, the 10-unit output layer with 50% dropout on its inputs:
     net['output'] = lasagne.layers.DenseLayer(
         net['full'],
-        num_units=10,
+        num_units=nOutput,
         nonlinearity=lasagne.nonlinearities.softmax)
 
-    return net['output']
+    return net
