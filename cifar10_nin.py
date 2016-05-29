@@ -112,3 +112,50 @@ def build_model2(input_var=None):
         nonlinearity=lasagne.nonlinearities.softmax)
 
     return net
+
+def build_quick(input_var=None):
+    net = {}
+    net['input'] = InputLayer((None, 3, 32, 32), input_var=input_var)
+    net['conv1'] = ConvLayer(net['input'],
+                             num_filters=32,
+                             filter_size=5,
+                             pad=2,
+                             flip_filters=False,
+                             W=lasagne.init.GlorotUniform(),
+                             nonlinearity=lasagne.nonlinearities.rectify)
+    net['pool1'] = PoolLayer(net['conv1'],
+                             pool_size=3,
+                             stride=2,
+                             mode='max',
+                             ignore_border=False)
+    net['conv2'] = ConvLayer(net['pool1'],
+                             num_filters=32,
+                             filter_size=5,
+                             pad=2,
+                             flip_filters=False,
+                             W=lasagne.init.GlorotUniform(),
+                             nonlinearity=lasagne.nonlinearities.rectify)
+    net['pool2'] = PoolLayer(net['conv2'],
+                             pool_size=3,
+                             stride=2,
+                             mode='average_exc_pad',
+                             ignore_border=False)
+
+    net['conv3'] = ConvLayer(net['pool2'],
+                             num_filters=64,
+                             filter_size=5,
+                             pad=2,
+                             flip_filters=False,
+                             W=lasagne.init.GlorotUniform(),
+                             nonlinearity=lasagne.nonlinearities.rectify)
+    net['pool3'] = PoolLayer(net['conv3'],
+                             pool_size=3,
+                             stride=2,
+                             mode='average_exc_pad',
+                             ignore_border=False)
+    net['output'] = lasagne.layers.DenseLayer(
+        net['pool3'],
+        num_units=10,
+        nonlinearity=lasagne.nonlinearities.softmax)
+
+    return net

@@ -271,7 +271,7 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 
 def main(model='cifar', num_epochs=20):
 
-    batch_size = 4000
+    batch_size = 1000
     print('batch_size=' , batch_size)
     # Load the dataset
     print("Loading data...")
@@ -301,7 +301,7 @@ def main(model='cifar', num_epochs=20):
     elif model == 'lenet':
         network = build_lenet5(input_var)
     elif model == 'cifar':
-        net = cifar10_nin.build_model2(input_var)
+        net = cifar10_nin.build_quick(input_var)
         network = net['output']
     else:
         print("Unrecognized model type %r." % model)
