@@ -32,4 +32,8 @@ def get_cifar10():
     train_x = train_x / np.float32(256)
     val_x = val_x / np.float32(256)
     test_x = test_x / np.float32(256)
+
+    train_x = train_x.astype(np.float32)
+    val_x = val_x.astype(np.float32)
+    test_x = test_x.astype(np.float32)
     return train_x, train_y, val_x, val_y, test_x, test_y
