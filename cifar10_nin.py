@@ -8,16 +8,17 @@
 from lasagne.layers import InputLayer, DropoutLayer, FlattenLayer
 from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer
 from lasagne.layers import Pool2DLayer as PoolLayer
+import lasagne
 
-
-def build_model():
+def build_model(input_var=None):
     net = {}
-    net['input'] = InputLayer((None, 3, 32, 32))
+    net['input'] = InputLayer((None, 3, 32, 32),input_var=input_var)
     net['conv1'] = ConvLayer(net['input'],
                              num_filters=192,
                              filter_size=5,
                              pad=2,
-                             flip_filters=False)
+                             flip_filters=False,
+                             W=lasagne.init.GlorotUniform())
     net['cccp1'] = ConvLayer(
         net['conv1'], num_filters=160, filter_size=1, flip_filters=False)
     net['cccp2'] = ConvLayer(

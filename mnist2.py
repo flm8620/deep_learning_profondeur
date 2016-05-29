@@ -24,6 +24,7 @@ import theano.tensor as T
 
 import lasagne
 from get_cifar10 import *
+import cifar10_nin
 
 
 # ################## Download and prepare the MNIST dataset ##################
@@ -266,10 +267,13 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 # more functions to better separate the code, but it wouldn't make it any
 # easier to read.
 
-def main(model='lenet', num_epochs=20):
+def main(model='cifar', num_epochs=20):
     # Load the dataset
     print("Loading data...")
-    X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
+    if model == 'cifar':
+        X_train, y_train, X_val, y_val, X_test, y_test=get_cifar10
+    else:
+        X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
@@ -287,6 +291,8 @@ def main(model='lenet', num_epochs=20):
         network = build_cnn(input_var)
     elif model == 'lenet':
         network = build_lenet5(input_var)
+    elif model == 'cifar':
+        network = cifar10_nin.build_model()
     else:
         print("Unrecognized model type %r." % model)
         return
