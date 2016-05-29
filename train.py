@@ -27,6 +27,7 @@ import cifar10_nin
 from lenet5 import *
 from load_data import *
 
+
 # ############################## Main program ################################
 # Everything else will be handled in our main program now. We could pull out
 # more functions to better separate the code, but it wouldn't make it any
@@ -36,9 +37,9 @@ def main(model='lenet', num_epochs=20, model_file=None):
     batch_size = 64
     seperate = True
     if seperate:
-        nOutput=5
+        nOutput = 5
     else:
-        nOutput=10
+        nOutput = 10
     load_first_part = True
     print('batch_size=', batch_size)
     # Load the dataset
@@ -70,11 +71,11 @@ def main(model='lenet', num_epochs=20, model_file=None):
     # Create neural network model (depending on first command line parameter)
     print("Building model and compiling functions...")
     if model == 'lenet':
-        net = build_lenet5(input_var,nOutput)
+        net = build_lenet5(input_var, nOutput)
         network = net['output']
     elif model == 'cifar':
         # pass
-        net = cifar10_nin.build_model2(input_var,nOutput)
+        net = cifar10_nin.build_model2(input_var, nOutput)
         network = net['output']
     else:
         print("Unrecognized model type %r." % model)
@@ -117,7 +118,8 @@ def main(model='lenet', num_epochs=20, model_file=None):
             this_train_err = train_fn(inputs, targets)
             train_err += this_train_err
             train_batches += 1
-            print('train batch', train_batches, 'err+=', '{:.5f}'.format(this_train_err), '{:.2f}'.format(time.time() - time_batch), 'seconds')
+            print('train batch', train_batches, 'err+=', '{:.5f}'.format(this_train_err),
+                  '{:.2f}'.format(time.time() - time_batch), 'seconds')
 
         val_err = 0
         val_acc = 0
@@ -139,7 +141,10 @@ def main(model='lenet', num_epochs=20, model_file=None):
             val_acc / val_batches * 100))
 
         # Optionally, you could now dump the network weights to a file like this:
+
         model_file = model + '_model' + str(epoch) + '.npz'
+        if seperate:
+            model_file = 'half' + model_file
         print('model saved to ' + model_file)
         np.savez(model_file, *(lasagne.layers.get_all_param_values(network)))
         print('epoch_time ', (time.time() - time_epoch) / 60., 'minutes')
