@@ -8,6 +8,7 @@
 from lasagne.layers import InputLayer, DropoutLayer, FlattenLayer
 from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer
 from lasagne.layers import Pool2DLayer as PoolLayer
+
 import lasagne
 
 
@@ -71,21 +72,21 @@ def build_model2(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.GlorotUniform())
+                             W=lasagne.init.GlorotUniform(),
+                             nonlinearity=lasagne.nonlinearities.rectify)
     net['pool1'] = PoolLayer(net['conv1'],
                              pool_size=3,
                              stride=2,
                              mode='max',
                              ignore_border=False)
-    net['relu1'] = lasagne.nonlinearities.rectify(net['pool1'])
-    net['norm1'] = lasagne.layers.LocalResponseNormalization2DLayer(net['relu1'], n=3, alpha=5e-5)
+    net['norm1'] = lasagne.layers.LocalResponseNormalization2DLayer(net['pool1'], n=3, alpha=5e-5)
     net['conv2'] = ConvLayer(net['norm1'],
                              num_filters=32,
                              filter_size=5,
                              pad=2,
-                             flip_filters=False)
-    net['relu2'] = lasagne.nonlinearities.rectify(net['conv2'])
-    net['pool2'] = PoolLayer(net['relu2'],
+                             flip_filters=False,
+                             nonlinearity=lasagne.nonlinearities.rectify)
+    net['pool2'] = PoolLayer(net['conv2'],
                              pool_size=3,
                              stride=2,
                              mode='average_exc_pad',
@@ -96,9 +97,9 @@ def build_model2(input_var=None):
                              num_filters=64,
                              filter_size=5,
                              pad=2,
-                             flip_filters=False)
-    net['relu3'] = lasagne.nonlinearities.rectify(net['conv3'])
-    net['pool3'] = PoolLayer(net['relu3'],
+                             flip_filters=False,
+                             nonlinearity=lasagne.nonlinearities.rectify)
+    net['pool3'] = PoolLayer(net['conv3'],
                              pool_size=3,
                              stride=2,
                              mode='average_exc_pad',
