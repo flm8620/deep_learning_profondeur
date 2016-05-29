@@ -12,7 +12,7 @@ from lasagne.layers import Pool2DLayer as PoolLayer
 import lasagne
 
 
-def build_model(input_var=None, nOutput=10):
+def build_model(input_var, nOutput):
     net = {}
     net['input'] = InputLayer((None, 3, 32, 32), input_var=input_var)
     net['conv1'] = ConvLayer(net['input'],
@@ -64,7 +64,7 @@ def build_model(input_var=None, nOutput=10):
     return net
 
 
-def build_model2(input_var=None, nOutput=10):
+def build_model2(input_var, nOutput):
     net = {}
     net['input'] = InputLayer((None, 3, 32, 32), input_var=input_var)
     net['conv1'] = ConvLayer(net['input'],

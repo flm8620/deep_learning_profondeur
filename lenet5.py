@@ -11,7 +11,7 @@ import theano.tensor as T
 import lasagne
 
 
-def build_lenet5(input_var=None, nOutput=10):
+def build_lenet5(input_var, nOutput):
     # Written by Leman FENG
     net = {}
 

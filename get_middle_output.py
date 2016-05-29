@@ -45,6 +45,11 @@ def main():
         print('    take first or second part of data :', 'first' if load_first_part else 'second')
     print('batch_size=', batch_size)
 
+    if separate:
+        nOutput = 5
+    else:
+        nOutput = 10
+
     # Load the dataset
     print("Loading data...")
     if model == 'cifar':
@@ -73,10 +78,10 @@ def main():
     # Create neural network model (depending on first command line parameter)
     print("Building model and compiling functions...")
     if model == 'lenet':
-        net = build_lenet5(input_var)
+        net = build_lenet5(input_var, nOutput)
         network = net['output']
     elif model == 'cifar':
-        net = cifar10_nin.build_model2(input_var)
+        net = cifar10_nin.build_model2(input_var, nOutput)
         network = net['output']
     else:
         print("Unrecognized model type %r." % model)
