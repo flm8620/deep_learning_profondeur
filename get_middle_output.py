@@ -12,7 +12,7 @@ import theano.tensor as T
 import lasagne
 from load_data import *
 from lenet5 import *
-from cifar10_nin import *
+import cifar10_nin
 import six.moves.cPickle as pickle
 
 
@@ -76,9 +76,8 @@ def main():
         net = build_lenet5(input_var)
         network = net['output']
     elif model == 'cifar':
-        pass
-        # net = cifar10_nin.build_model2(input_var)
-        # network = net['output']
+        net = cifar10_nin.build_model2(input_var)
+        network = net['output']
     else:
         print("Unrecognized model type %r." % model)
         return

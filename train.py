@@ -77,6 +77,7 @@ def main():
     print('  model_file : ', model_file)
     print('  nOutput = ', nOutput)
     print('  model will be saved to : ', save_file_name + '*.npz')
+    print('  test only :', test_only)
 
     print()
 
