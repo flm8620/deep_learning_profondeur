@@ -72,7 +72,7 @@ def build_model2(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.Normal(std=0.001),
+                             W=lasagne.init.Normal(std=0.1),
                              nonlinearity=lasagne.nonlinearities.rectify)
     net['pool1'] = PoolLayer(net['conv1'],
                              pool_size=3,
@@ -85,7 +85,7 @@ def build_model2(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.Normal(std=0.01),
+                             W=lasagne.init.Normal(std=0.1),
                              nonlinearity=lasagne.nonlinearities.rectify)
     net['pool2'] = PoolLayer(net['conv2'],
                              pool_size=3,
@@ -99,7 +99,7 @@ def build_model2(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.Normal(std=0.01),
+                             W=lasagne.init.Normal(std=0.1),
                              nonlinearity=lasagne.nonlinearities.rectify)
     net['pool3'] = PoolLayer(net['conv3'],
                              pool_size=3,
@@ -122,7 +122,7 @@ def build_quick(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.Normal(std=0.001),
+                             W=lasagne.init.Normal(std=0.1),
                              nonlinearity=lasagne.nonlinearities.rectify)
     net['pool1'] = PoolLayer(net['conv1'],
                              pool_size=3,
@@ -134,7 +134,7 @@ def build_quick(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.Normal(std=0.01),
+                             W=lasagne.init.Normal(std=0.1),
                              nonlinearity=lasagne.nonlinearities.rectify)
     net['pool2'] = PoolLayer(net['conv2'],
                              pool_size=3,
@@ -147,7 +147,7 @@ def build_quick(input_var=None):
                              filter_size=5,
                              pad=2,
                              flip_filters=False,
-                             W=lasagne.init.Normal(std=0.01),
+                             W=lasagne.init.Normal(std=0.1),
                              nonlinearity=lasagne.nonlinearities.rectify)
     net['pool3'] = PoolLayer(net['conv3'],
                              pool_size=3,

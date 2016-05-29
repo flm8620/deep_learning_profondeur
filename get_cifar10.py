@@ -48,4 +48,6 @@ def get_cifar10():
     test_x[:, 0, :, :] -= color_mean[0]
     test_x[:, 1, :, :] -= color_mean[1]
     test_x[:, 2, :, :] -= color_mean[2]
+
+
     return train_x, train_y, val_x, val_y, test_x, test_y

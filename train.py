@@ -25,6 +25,7 @@ import theano.tensor as T
 import lasagne
 from get_cifar10 import *
 import cifar10_nin
+from lenet5 import *
 import time
 
 
@@ -208,36 +209,7 @@ def build_cnn(input_var=None):
     return network
 
 
-def build_lenet5(input_var=None):
-    # Written by Leman FENG
-    network = lasagne.layers.InputLayer(shape=(None, 1, 28, 28),
-                                        input_var=input_var)
 
-    network = lasagne.layers.Conv2DLayer(
-        network, num_filters=20, filter_size=(5, 5),
-        nonlinearity=lasagne.nonlinearities.rectify,
-        W=lasagne.init.GlorotUniform())
-
-    network = lasagne.layers.MaxPool2DLayer(network, pool_size=(2, 2))
-
-    network = lasagne.layers.Conv2DLayer(
-        network, num_filters=50, filter_size=(5, 5),
-        nonlinearity=lasagne.nonlinearities.rectify)
-
-    network = lasagne.layers.MaxPool2DLayer(network, pool_size=(2, 2))
-
-    network = lasagne.layers.DenseLayer(
-        network,
-        num_units=500,
-        nonlinearity=lasagne.nonlinearities.rectify)
-
-    # And, finally, the 10-unit output layer with 50% dropout on its inputs:
-    network = lasagne.layers.DenseLayer(
-        network,
-        num_units=10,
-        nonlinearity=lasagne.nonlinearities.softmax)
-
-    return network
 
 
 # ############################# Batch iterator ###############################
@@ -281,17 +253,13 @@ def one_hot(x, n):
 # more functions to better separate the code, but it wouldn't make it any
 # easier to read.
 
-def main(model='cifar', num_epochs=20):
-    batch_size = 100
-    num_class = 10
+def main(model='cifar', num_epochs=20,model_file=None):
+    batch_size = 64
     print('batch_size=', batch_size)
     # Load the dataset
     print("Loading data...")
     if model == 'cifar':
         X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
-        #y_train = one_hot(y_train, num_class)
-        #y_val = one_hot(y_val, num_class)
-        #y_test = one_hot(y_test, num_class)
     else:
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
 
@@ -301,9 +269,6 @@ def main(model='cifar', num_epochs=20):
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
-    #if model == 'cifar':
-    #    target_var = T.fmatrix('targets_m')
-    #else:
     target_var = T.ivector('targets')
 
     # Create neural network model (depending on first command line parameter)
@@ -324,6 +289,10 @@ def main(model='cifar', num_epochs=20):
     else:
         print("Unrecognized model type %r." % model)
         return
+    if model_file is not None:
+        with np.load(model_file) as f:
+            param_values = [f['arr_%d' % i] for i in range(len(f.files))]
+        lasagne.layers.set_all_param_values(network, param_values)
 
     # Create a loss expression for training, i.e., a scalar objective we want
     # to minimize (for our multi-class problem, it is the cross-entropy loss):
@@ -338,7 +307,7 @@ def main(model='cifar', num_epochs=20):
     # Descent (SGD) with Nesterov momentum, but Lasagne offers plenty more.
     params = lasagne.layers.get_all_params(network, trainable=True)
     updates = lasagne.updates.nesterov_momentum(
-        loss, params, learning_rate=0.001, momentum=0.9)
+        loss, params, learning_rate=0.01, momentum=0.9)
 
     # Create a loss expression for validation/testing. The crucial difference
     # here is that we do a deterministic forward pass through the network,
@@ -388,7 +357,7 @@ def main(model='cifar', num_epochs=20):
             val_err += err
             val_acc += acc
             val_batches += 1
-            print('valid batch', val_batches, 'err+=', err, 'acc++', acc, time.time() - time_batch, 'seconds')
+            print('valid batch', val_batches, 'err+=', err, 'acc+=', acc, time.time() - time_batch, 'seconds')
 
         # Then we print the results for this epoch:
         print("Epoch {} of {} took {:.3f}s".format(
@@ -399,7 +368,7 @@ def main(model='cifar', num_epochs=20):
             val_acc / val_batches * 100))
 
         # Optionally, you could now dump the network weights to a file like this:
-        print('model saved to ' + model + '_model.npz')
+        print('model saved to ' + model + '_model' + str(epoch) + '.npz')
         np.savez(model + '_model' + str(epoch) + '.npz', *(lasagne.layers.get_all_param_values(network)))
         print('epoch_time ', (time.time() - time_epoch) / 60., 'minutes')
 
@@ -445,4 +414,6 @@ if __name__ == '__main__':
             kwargs['model'] = sys.argv[1]
         if len(sys.argv) > 2:
             kwargs['num_epochs'] = int(sys.argv[2])
+        if len(sys.argv) > 3:
+            kwargs['model_file'] = sys.argv[3]
         main(**kwargs)
