@@ -10,9 +10,10 @@ from lasagne.layers.dnn import Conv2DDNNLayer as ConvLayer
 from lasagne.layers import Pool2DLayer as PoolLayer
 import lasagne
 
+
 def build_model(input_var=None):
     net = {}
-    net['input'] = InputLayer((None, 3, 32, 32),input_var=input_var)
+    net['input'] = InputLayer((None, 3, 32, 32), input_var=input_var)
     net['conv1'] = ConvLayer(net['input'],
                              num_filters=192,
                              filter_size=5,
@@ -58,5 +59,53 @@ def build_model(input_var=None):
                              mode='average_exc_pad',
                              ignore_border=False)
     net['output'] = FlattenLayer(net['pool3'])
+
+    return net
+
+
+def build_model2(input_var=None):
+    net = {}
+    net['input'] = InputLayer((None, 3, 32, 32), input_var=input_var)
+    net['conv1'] = ConvLayer(net['input'],
+                             num_filters=32,
+                             filter_size=5,
+                             pad=2,
+                             flip_filters=False,
+                             W=lasagne.init.GlorotUniform())
+    net['pool1'] = PoolLayer(net['conv1'],
+                             pool_size=3,
+                             stride=2,
+                             mode='max',
+                             ignore_border=False)
+    net['relu1'] = lasagne.nonlinearities.rectify(net['pool1'])
+    net['norm1'] = lasagne.layers.LocalResponseNormalization2DLayer(net['relu1'], n=3, alpha=5e-5)
+    net['conv2'] = ConvLayer(net['norm1'],
+                             num_filters=32,
+                             filter_size=5,
+                             pad=2,
+                             flip_filters=False)
+    net['relu2'] = lasagne.nonlinearities.rectify(net['conv2'])
+    net['pool2'] = PoolLayer(net['relu2'],
+                             pool_size=3,
+                             stride=2,
+                             mode='average_exc_pad',
+                             ignore_border=False)
+    net['norm2'] = lasagne.layers.LocalResponseNormalization2DLayer(net['pool2'], n=3, alpha=5e-5)
+
+    net['conv3'] = ConvLayer(net['norm2'],
+                             num_filters=64,
+                             filter_size=5,
+                             pad=2,
+                             flip_filters=False)
+    net['relu3'] = lasagne.nonlinearities.rectify(net['conv3'])
+    net['pool3'] = PoolLayer(net['relu3'],
+                             pool_size=3,
+                             stride=2,
+                             mode='average_exc_pad',
+                             ignore_border=False)
+    net['output'] = lasagne.layers.DenseLayer(
+        net['pool3'],
+        num_units=10,
+        nonlinearity=lasagne.nonlinearities.softmax)
 
     return net
