@@ -25,7 +25,7 @@ import theano.tensor as T
 import lasagne
 from get_cifar10 import *
 import cifar10_nin
-
+import time
 
 # ################## Download and prepare the MNIST dataset ##################
 # This is just some way of getting the MNIST dataset from an online location
@@ -271,7 +271,7 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 
 def main(model='cifar', num_epochs=20):
 
-    batch_size = 1000
+    batch_size = 4000
     print('batch_size=' , batch_size)
     # Load the dataset
     print("Loading data...")
@@ -343,17 +343,19 @@ def main(model='cifar', num_epochs=20):
     print("Starting training...")
     # We iterate over epochs:
     for epoch in range(num_epochs):
+        time_epoch = time.time()
         # In each epoch, we do a full pass over the training data:
         train_err = 0
         train_batches = 0
         start_time = time.time()
         print("Training stage:")
         for batch in iterate_minibatches(X_train, y_train, batch_size, shuffle=True):
+            time_batch = time.time()
             inputs, targets = batch
             this_train_err = train_fn(inputs, targets)
             train_err += this_train_err
             train_batches += 1
-            print('train batch',train_batches,'err+=',this_train_err)
+            print('train batch',train_batches,'err+=',this_train_err,time.time()-time_batch,'seconds')
 
         # And a full pass over the validation data:
         val_err = 0
@@ -361,12 +363,13 @@ def main(model='cifar', num_epochs=20):
         val_batches = 0
         print("Validation stage:")
         for batch in iterate_minibatches(X_val, y_val, batch_size, shuffle=False):
+            time_batch = time.time()
             inputs, targets = batch
             err, acc = val_fn(inputs, targets)
             val_err += err
             val_acc += acc
             val_batches += 1
-            print('valid batch', val_batches, 'err+=', err,'acc++',acc)
+            print('valid batch', val_batches, 'err+=', err,'acc++',acc,time.time()-time_batch,'seconds')
 
         # Then we print the results for this epoch:
         print("Epoch {} of {} took {:.3f}s".format(
@@ -378,18 +381,21 @@ def main(model='cifar', num_epochs=20):
 
         # Optionally, you could now dump the network weights to a file like this:
         print('model saved to '+model+'_model.npz')
-        np.savez(model+'_model.npz', *(lasagne.layers.get_all_param_values(network)))
+        np.savez(model+'_model'+str(epoch)+'.npz', *(lasagne.layers.get_all_param_values(network)))
+        print('epoch_time ', (time.time()-time_epoch) / 60.,'minutes')
 
     # After training, we compute and print the test error:
     test_err = 0
     test_acc = 0
     test_batches = 0
     for batch in iterate_minibatches(X_test, y_test, batch_size, shuffle=False):
+        time_batch = time.time()
         inputs, targets = batch
         err, acc = val_fn(inputs, targets)
         test_err += err
         test_acc += acc
         test_batches += 1
+        print('test batch', test_batches, 'err+=', err, 'acc+=', acc, time.time() - time_batch, 'seconds')
     print("Final results:")
     print("  test loss:\t\t\t{:.6f}".format(test_err / test_batches))
     print("  test accuracy:\t\t{:.2f} %".format(
