@@ -3,6 +3,7 @@ from __future__ import print_function
 import sys
 import os
 import time
+import argparse
 
 import numpy as np
 import theano
@@ -11,15 +12,39 @@ import theano.tensor as T
 import lasagne
 from load_data import *
 from lenet5 import *
-# from cifar10_nin import *
+from cifar10_nin import *
 import six.moves.cPickle as pickle
 
 
-def main(model, model_file, layer_name):
-    batch_size = 64
-    seperate = True
-    load_first_part = False
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("model", help="model name", choices=['cifar', 'lenet'])
+    parser.add_argument("model_file", help="model file")
+    parser.add_argument('layer', help='layer name to get output')
+    parser.add_argument('--no-separate', help='split the data', action='store_true')
+    parser.add_argument('--first-part', help='take first part of data instead of the second', action='store_true')
+    parser.add_argument('-b', '--batch-size', type=int, default=64)
+
+    args = parser.parse_args()
+
+    model = args.model
+    batch_size = args.batch_size
+    separate = not args.no_separate
+    model_file = args.model_file
+    layer_name = args.layer
+    load_first_part = args.first_part
+    filename = model + '_' + layer_name + '_output.save'
+    print('--Parameters--')
+    print('  model         : ', model)
+    print('  layer name    : ', layer_name)
+    print('  batch_size    : ', batch_size)
+    print('  model_file    : ', model_file)
+    print('  middle output will be saved to : ', filename)
+    print('  separate data :', separate)
+    if separate:
+        print('    take first or second part of data :', 'first' if load_first_part else 'second')
     print('batch_size=', batch_size)
+
     # Load the dataset
     print("Loading data...")
     if model == 'cifar':
@@ -29,7 +54,7 @@ def main(model, model_file, layer_name):
     else:
         assert False
 
-    if seperate:
+    if separate:
         X_train_1, y_train_1, X_train_2, y_train_2 = seperate_data(X_train, y_train)
         X_val_1, y_val_1, X_val_2, y_val_2 = seperate_data(X_val, y_val)
         X_test_1, y_test_1, X_test_2, y_test_2 = seperate_data(X_test, y_test)
@@ -44,7 +69,6 @@ def main(model, model_file, layer_name):
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
-    target_var = T.ivector('targets')
 
     # Create neural network model (depending on first command line parameter)
     print("Building model and compiling functions...")
@@ -72,15 +96,15 @@ def main(model, model_file, layer_name):
     get_output = theano.function([input_var], output.flatten(2))
 
     output_shape = np.array(lasagne.layers.get_output_shape(net[layer_name]))
-    print('layer '+layer_name+' shape :', output_shape)
-    output_size = np.prod(output_shape[1:])
+    print('layer ' + layer_name + ' shape :', output_shape)
+
     all_train_output = []
     all_train_y = []
     all_test_output = []
     all_test_y = []
     print('getting from train')
     for batch in iterate_minibatches(X_train, y_train, batch_size, shuffle=False):
-        print('.',end='',flush=True)
+        print('.', end='', flush=True)
         inputs, targets = batch
         batch_output = get_output(inputs)  # a numpy ndarray
         all_train_output.extend(batch_output.tolist())
@@ -100,22 +124,10 @@ def main(model, model_file, layer_name):
     print("test output shape : ", np.array(all_test_output).shape)
     print("test y shape : ", np.array(all_test_y).shape)
 
-    filename = model + '_' + layer_name + '_output.save'
     with open(filename, 'wb') as f:
         pickle.dump([all_train_output, all_train_y, all_test_output, all_test_y], f)
     print('... saved to ', filename)
 
 
 if __name__ == '__main__':
-    if ('--help' in sys.argv) or ('-h' in sys.argv):
-        print("Trains a neural network on MNIST using Lasagne.")
-        print("Usage: %s MODEL MODEL_FILE LAYER_NAME" % sys.argv[0])
-    else:
-        kwargs = {}
-        if len(sys.argv) > 1:
-            kwargs['model'] = sys.argv[1]
-        if len(sys.argv) > 2:
-            kwargs['model_file'] = sys.argv[2]
-        if len(sys.argv) > 3:
-            kwargs['layer_name'] = sys.argv[3]
-        main(**kwargs)
+    main()

@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 import sys
@@ -12,6 +11,7 @@ import theano.tensor as T
 import lasagne
 import time
 import six.moves.cPickle as pickle
+
 
 # ############################# Batch iterator ###############################
 # This is just a simple helper function iterating over training data in
@@ -173,6 +173,5 @@ def get_cifar10():
     test_x[:, 0, :, :] -= color_mean[0]
     test_x[:, 1, :, :] -= color_mean[1]
     test_x[:, 2, :, :] -= color_mean[2]
-
 
     return train_x, train_y, val_x, val_y, test_x, test_y

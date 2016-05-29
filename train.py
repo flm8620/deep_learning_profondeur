@@ -17,6 +17,7 @@ from __future__ import print_function
 import sys
 import os
 import time
+import argparse
 
 import numpy as np
 import theano
@@ -33,16 +34,41 @@ from load_data import *
 # more functions to better separate the code, but it wouldn't make it any
 # easier to read.
 
-def main(model='lenet', num_epochs=20, model_file=None):
-    batch_size = 64
-    seperate = True
-    if seperate:
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("model", help="model name", choices=['cifar', 'lenet'])
+    parser.add_argument('-n', '--num-epochs', type=int, default=20)
+    parser.add_argument('-f', '--model-file', help="model file")
+    parser.add_argument('--half', help='split the data and take first part', action='store_true')
+    parser.add_argument('-b', '--batch-size', type=int, default=64)
+    parser.add_argument('-l', '--learning-rate', type=float, default=0.01)
+
+    args = parser.parse_args()
+
+    model = args.model
+    batch_size = args.batch_size
+    separate = args.half
+    model_file = args.model_file
+    num_epochs = args.num_epochs
+    learning_rate = args.learning_rate
+    save_file_name = model + '_model'
+    if separate:
+        save_file_name = 'half_' + save_file_name
         nOutput = 5
     else:
         nOutput = 10
     load_first_part = True
-    print('batch_size=', batch_size)
-    # Load the dataset
+    print('--Parameter--')
+    print('  model=', model)
+    print('  batch_size=', batch_size)
+    print('  num_epochs=', num_epochs)
+    print('  learning_rate=', learning_rate)
+    print('  separate data : ', separate)
+    print('  model_file : ', model_file)
+    print('  nOutput = ', nOutput)
+    print('  model will be saved to : ', save_file_name + '*.npz')
+    print()
+
     print("Loading data...")
     if model == 'cifar':
         X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
@@ -51,7 +77,7 @@ def main(model='lenet', num_epochs=20, model_file=None):
     else:
         assert False
 
-    if seperate:
+    if separate:
         X_train_1, y_train_1, X_train_2, y_train_2 = seperate_data(X_train, y_train)
         X_val_1, y_val_1, X_val_2, y_val_2 = seperate_data(X_val, y_val)
         X_test_1, y_test_1, X_test_2, y_test_2 = seperate_data(X_test, y_test)
@@ -91,7 +117,7 @@ def main(model='lenet', num_epochs=20, model_file=None):
 
     params = lasagne.layers.get_all_params(network, trainable=True)
     updates = lasagne.updates.nesterov_momentum(
-        loss, params, learning_rate=0.01, momentum=0.9)
+        loss, params, learning_rate=learning_rate, momentum=0.9)
 
     test_prediction = lasagne.layers.get_output(network, deterministic=True)
     test_loss = lasagne.objectives.categorical_crossentropy(test_prediction, target_var)
@@ -142,9 +168,7 @@ def main(model='lenet', num_epochs=20, model_file=None):
 
         # Optionally, you could now dump the network weights to a file like this:
 
-        model_file = model + '_model' + str(epoch) + '.npz'
-        if seperate:
-            model_file = 'half' + model_file
+        model_file = save_file_name + str(epoch) + '.npz'
         print('model saved to ' + model_file)
         np.savez(model_file, *(lasagne.layers.get_all_param_values(network)))
         print('epoch_time ', (time.time() - time_epoch) / 60., 'minutes')
@@ -173,15 +197,4 @@ def main(model='lenet', num_epochs=20, model_file=None):
 
 
 if __name__ == '__main__':
-    if ('--help' in sys.argv) or ('-h' in sys.argv):
-        print("Trains a neural network on MNIST using Lasagne.")
-        print("Usage: %s [MODEL [EPOCHS [MODEL_FILE]]]" % sys.argv[0])
-    else:
-        kwargs = {}
-        if len(sys.argv) > 1:
-            kwargs['model'] = sys.argv[1]
-        if len(sys.argv) > 2:
-            kwargs['num_epochs'] = int(sys.argv[2])
-        if len(sys.argv) > 3:
-            kwargs['model_file'] = sys.argv[3]
-        main(**kwargs)
+    main()

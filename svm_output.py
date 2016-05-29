@@ -1,6 +1,7 @@
 import sys
 import os
 import time
+import argparse
 
 from sklearn import svm as svm
 from sklearn.decomposition import PCA
@@ -8,7 +9,24 @@ import six.moves.cPickle as pickle
 import numpy
 
 
-def main(datafile, usePCA=None, nPCA=100):
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("datafile", help="data file")
+    parser.add_argument('-p', '--pca', help="use PCA", action='store_true')
+    parser.add_argument('-n', '--n-pca', help="dim of PCA", default=100)
+
+    args = parser.parse_args()
+
+    datafile = args.datafile
+    usePCA = args.pca
+    nPCA = args.n_pca
+
+    print('--Parameters--')
+    print('  use PCA : ', usePCA)
+    if usePCA:
+        print('    dim PCA = ', nPCA)
+    print()
+
     print('loading ' + datafile + ' ... ')
     with open(datafile, 'rb') as f:
         [all_train_output, all_train_y, all_test_output, all_test_y] = pickle.load(f)
@@ -19,8 +37,7 @@ def main(datafile, usePCA=None, nPCA=100):
     print('{} testing examples'.format(len(all_test_y)))
     print('data dimension : {}'.format(len(all_train_output[0])))
 
-
-    if usePCA is not None:
+    if usePCA:
         print('fitting PCA with ndim = {}'.format(nPCA))
         pca = PCA(n_components=nPCA)
         pca.fit(all_train_output)
@@ -28,7 +45,6 @@ def main(datafile, usePCA=None, nPCA=100):
         all_test_output = pca.transform(all_test_output)
     else:
         print('not using PCA')
-
 
     lsvm = svm.LinearSVC()
 
@@ -47,15 +63,4 @@ def main(datafile, usePCA=None, nPCA=100):
 
 
 if __name__ == '__main__':
-    if ('--help' in sys.argv) or ('-h' in sys.argv):
-        print("Use svm to test middle layer ouput.")
-        print("Usage: %s datafile [PCA [nPCA]]" % sys.argv[0])
-    else:
-        kwargs = {}
-        if len(sys.argv) > 1:
-            kwargs['datafile'] = sys.argv[1]
-        if len(sys.argv) > 2:
-            kwargs['usePCA'] = sys.argv[2]
-        if len(sys.argv) > 3:
-            kwargs['nPCA'] = int(sys.argv[3])
-        main(**kwargs)
+    main()
