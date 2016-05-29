@@ -340,21 +340,26 @@ def main(model='cifar', num_epochs=20):
         train_err = 0
         train_batches = 0
         start_time = time.time()
+        print("Training stage:")
         for batch in iterate_minibatches(X_train, y_train, 500, shuffle=True):
             inputs, targets = batch
-            train_err += train_fn(inputs, targets)
+            this_train_err = train_fn(inputs, targets)
+            train_err += this_train_err
             train_batches += 1
+            print('train batch',train_batches,'err+=',this_train_err)
 
         # And a full pass over the validation data:
         val_err = 0
         val_acc = 0
         val_batches = 0
+        print("Validation stage:")
         for batch in iterate_minibatches(X_val, y_val, 500, shuffle=False):
             inputs, targets = batch
             err, acc = val_fn(inputs, targets)
             val_err += err
             val_acc += acc
             val_batches += 1
+            print('valid batch', val_batches, 'err+=', err,'acc++',acc)
 
         # Then we print the results for this epoch:
         print("Epoch {} of {} took {:.3f}s".format(
@@ -365,7 +370,7 @@ def main(model='cifar', num_epochs=20):
             val_acc / val_batches * 100))
 
         # Optionally, you could now dump the network weights to a file like this:
-        np.savez('model.npz', *(lasagne.layers.get_all_param_values(network)))
+        np.savez(model+'_model.npz', *(lasagne.layers.get_all_param_values(network)))
 
     # After training, we compute and print the test error:
     test_err = 0
