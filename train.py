@@ -25,13 +25,7 @@ import theano.tensor as T
 import lasagne
 import cifar10_nin
 from lenet5 import *
-import time
 from load_data import *
-
-
-
-
-
 
 # ############################## Main program ################################
 # Everything else will be handled in our main program now. We could pull out
@@ -123,20 +117,18 @@ def main(model='lenet', num_epochs=20, model_file=None):
             this_train_err = train_fn(inputs, targets)
             train_err += this_train_err
             train_batches += 1
-            print('train batch', train_batches, 'err+=', this_train_err, time.time() - time_batch, 'seconds')
+            print('train batch', train_batches, 'err+=', '{:.5f}'.format(this_train_err), '{:.2f}'.format(time.time() - time_batch), 'seconds')
 
         val_err = 0
         val_acc = 0
         val_batches = 0
-        print("Validation stage:")
+        print("Validation stage ..")
         for batch in iterate_minibatches(X_val, y_val, batch_size, shuffle=False):
-            time_batch = time.time()
             inputs, targets = batch
             err, acc = val_fn(inputs, targets)
             val_err += err
             val_acc += acc
             val_batches += 1
-            print('valid batch', val_batches, 'err+=', err, 'acc+=', acc, time.time() - time_batch, 'seconds')
 
         # Then we print the results for this epoch:
         print("Epoch {} of {} took {:.3f}s".format(
@@ -147,8 +139,9 @@ def main(model='lenet', num_epochs=20, model_file=None):
             val_acc / val_batches * 100))
 
         # Optionally, you could now dump the network weights to a file like this:
-        print('model saved to ' + model + '_model' + str(epoch) + '.npz')
-        np.savez(model + '_model' + str(epoch) + '.npz', *(lasagne.layers.get_all_param_values(network)))
+        model_file = model + '_model' + str(epoch) + '.npz'
+        print('model saved to ' + model_file)
+        np.savez(model_file, *(lasagne.layers.get_all_param_values(network)))
         print('epoch_time ', (time.time() - time_epoch) / 60., 'minutes')
 
     # After training, we compute and print the test error:
@@ -156,13 +149,11 @@ def main(model='lenet', num_epochs=20, model_file=None):
     test_acc = 0
     test_batches = 0
     for batch in iterate_minibatches(X_test, y_test, batch_size, shuffle=False):
-        time_batch = time.time()
         inputs, targets = batch
         err, acc = val_fn(inputs, targets)
         test_err += err
         test_acc += acc
         test_batches += 1
-        print('test batch', test_batches, 'err+=', err, 'acc+=', acc, time.time() - time_batch, 'seconds')
     print("Final results:")
     print("  test loss:\t\t\t{:.6f}".format(test_err / test_batches))
     print("  test accuracy:\t\t{:.2f} %".format(
@@ -179,14 +170,7 @@ def main(model='lenet', num_epochs=20, model_file=None):
 if __name__ == '__main__':
     if ('--help' in sys.argv) or ('-h' in sys.argv):
         print("Trains a neural network on MNIST using Lasagne.")
-        print("Usage: %s [MODEL [EPOCHS]]" % sys.argv[0])
-        print()
-        print("MODEL: 'mlp' for a simple Multi-Layer Perceptron (MLP),")
-        print("       'custom_mlp:DEPTH,WIDTH,DROP_IN,DROP_HID' for an MLP")
-        print("       with DEPTH hidden layers of WIDTH units, DROP_IN")
-        print("       input dropout and DROP_HID hidden dropout,")
-        print("       'cnn' for a simple Convolutional Neural Network (CNN).")
-        print("EPOCHS: number of training epochs to perform (default: 500)")
+        print("Usage: %s [MODEL [EPOCHS [MODEL_FILE]]]" % sys.argv[0])
     else:
         kwargs = {}
         if len(sys.argv) > 1:

@@ -1,4 +1,3 @@
-
 from __future__ import print_function
 
 import sys
@@ -12,10 +11,11 @@ import theano.tensor as T
 import lasagne
 from load_data import *
 from lenet5 import *
-from cifar10_nin import *
-import time
+# from cifar10_nin import *
+import six.moves.cPickle as pickle
 
-def main(model='lenet', model_file='lenet_model1.npz', layer_name='pool1'):
+
+def main(model, model_file, layer_name):
     batch_size = 64
     seperate = True
     load_first_part = False
@@ -53,8 +53,8 @@ def main(model='lenet', model_file='lenet_model1.npz', layer_name='pool1'):
         network = net['output']
     elif model == 'cifar':
         pass
-        #net = cifar10_nin.build_model2(input_var)
-        #network = net['output']
+        # net = cifar10_nin.build_model2(input_var)
+        # network = net['output']
     else:
         print("Unrecognized model type %r." % model)
         return
@@ -65,33 +65,57 @@ def main(model='lenet', model_file='lenet_model1.npz', layer_name='pool1'):
     else:
         assert False
 
-
-    #middle_output = theano.function([input_var], net[layer_name].output)
+    # middle_output = theano.function([input_var], net[layer_name].output)
     print("Getting middle output...")
 
+    output = lasagne.layers.get_output(net[layer_name])
+    get_output = theano.function([input_var], output.flatten(2))
 
+    output_shape = np.array(lasagne.layers.get_output_shape(net[layer_name]))
+    print('layer '+layer_name+' shape :', output_shape)
+    output_size = np.prod(output_shape[1:])
+    all_train_output = []
+    all_train_y = []
+    all_test_output = []
+    all_test_y = []
+    print('getting from train')
     for batch in iterate_minibatches(X_train, y_train, batch_size, shuffle=False):
+        print('.',end='',flush=True)
         inputs, targets = batch
-        output = net[layer_name].get_output_for()
+        batch_output = get_output(inputs)  # a numpy ndarray
+        all_train_output.extend(batch_output.tolist())
+        all_train_y.extend(targets.tolist())
+    print()
+    print('getting from test')
+    for batch in iterate_minibatches(X_test, y_test, batch_size, shuffle=False):
+        print('.', end='', flush=True)
+        inputs, targets = batch
+        batch_output = get_output(inputs)  # a numpy ndarray
+        all_test_output.extend(batch_output.tolist())
+        all_test_y.extend(targets.tolist())
+    print()
+
+    print("train output shape : ", np.array(all_train_output).shape)
+    print("train y shape : ", np.array(all_train_y).shape)
+    print("test output shape : ", np.array(all_test_output).shape)
+    print("test y shape : ", np.array(all_test_y).shape)
+
+    filename = model + '_' + layer_name + '_output.save'
+    with open(filename, 'wb') as f:
+        pickle.dump([all_train_output, all_train_y, all_test_output, all_test_y], f)
+    print('... saved to ', filename)
 
 
 if __name__ == '__main__':
     if ('--help' in sys.argv) or ('-h' in sys.argv):
         print("Trains a neural network on MNIST using Lasagne.")
-        print("Usage: %s [MODEL [EPOCHS]]" % sys.argv[0])
-        print()
-        print("MODEL: 'mlp' for a simple Multi-Layer Perceptron (MLP),")
-        print("       'custom_mlp:DEPTH,WIDTH,DROP_IN,DROP_HID' for an MLP")
-        print("       with DEPTH hidden layers of WIDTH units, DROP_IN")
-        print("       input dropout and DROP_HID hidden dropout,")
-        print("       'cnn' for a simple Convolutional Neural Network (CNN).")
-        print("EPOCHS: number of training epochs to perform (default: 500)")
+        print("Usage: %s MODEL MODEL_FILE LAYER_NAME" % sys.argv[0])
     else:
         kwargs = {}
         if len(sys.argv) > 1:
             kwargs['model'] = sys.argv[1]
         if len(sys.argv) > 2:
-            kwargs['num_epochs'] = int(sys.argv[2])
+            kwargs['model_file'] = sys.argv[2]
         if len(sys.argv) > 3:
-            kwargs['model_file'] = sys.argv[3]
+            kwargs['layer_name'] = sys.argv[3]
         main(**kwargs)
