@@ -28,6 +28,14 @@ import cifar10_nin
 from lenet5 import *
 from load_data import *
 
+from itertools import chain
+
+
+def get_all_params_from_layers(layers, unwrap_shared=True, **tags):
+    params = chain.from_iterable(l.get_params(
+        unwrap_shared=unwrap_shared, **tags) for l in layers)
+    return lasagne.utils.unique(params)
+
 
 # ############################## Main program ################################
 # Everything else will be handled in our main program now. We could pull out
@@ -44,6 +52,8 @@ def main():
     parser.add_argument('-b', '--batch-size', type=int, default=64)
     parser.add_argument('-l', '--learning-rate', type=float, default=0.01)
     parser.add_argument('-t', '--test-only', action='store_true')
+    parser.add_argument('-T', '--train-from-layer', help='only train on this layer and those layers after it, \
+    don\'t update weights of layers before this layer')
 
     args = parser.parse_args()
 
@@ -56,6 +66,8 @@ def main():
     save_file_name = model + '_model'
     test_only = args.test_only
     load_first_part = not args.second_part
+    train_from_layer = args.train_from_layer
+
     if test_only and not model_file:
         print('you need to specify a model file to test')
         exit()
@@ -78,6 +90,7 @@ def main():
     print('  nOutput = ', nOutput)
     print('  model will be saved to : ', save_file_name + '*.npz')
     print('  test only :', test_only)
+    print('  only train from this layer : ', train_from_layer)
 
     print()
 
@@ -127,9 +140,13 @@ def main():
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
     loss = loss.mean()
 
-    params = lasagne.layers.get_all_params(network, trainable=True)
-    updates = lasagne.updates.nesterov_momentum(
-        loss, params, learning_rate=learning_rate, momentum=0.9)
+    if train_from_layer:
+        layers_to_train = lasagne.layers.get_all_layers(network, treat_as_input=net[train_from_layer])
+        params = get_all_params_from_layers(layers_to_train, trainable=True)
+    else:
+        params = lasagne.layers.get_all_params(network, trainable=True)
+
+    updates = lasagne.updates.nesterov_momentum(loss, params, learning_rate=learning_rate, momentum=0.9)
 
     test_prediction = lasagne.layers.get_output(network, deterministic=True)
     test_loss = lasagne.objectives.categorical_crossentropy(test_prediction, target_var)
