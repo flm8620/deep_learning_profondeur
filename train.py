@@ -43,10 +43,10 @@ def get_all_params_from_layers(layers, unwrap_shared=True, **tags):
 # Everything else will be handled in our main program now. We could pull out
 # more functions to better separate the code, but it wouldn't make it any
 # easier to read.
-def log_and_print(*arg, logfile):
+def log_and_print(text, logfile):
     with open(logfile, 'a') as f:
-        f.write(*arg)
-        print(*arg)
+        f.write(text)
+        print(text)
 
 
 def main():
@@ -98,20 +98,21 @@ def main():
     logfile = save_file_name + '_log.txt'
     log_print = functools.partial(log_and_print, logfile=logfile)
     log_print('--Parameter--')
-    log_print('  model=', model)
-    log_print('  batch_size=', batch_size)
-    log_print('  num_epochs=', num_epochs)
-    log_print('  learning_rate=', learning_rate)
-    log_print('  separate data :', separate)
+    log_print('  model={}'.format(model))
+    log_print('  batch_size={}'.format(batch_size))
+    log_print('  num_epochs={}'.format(num_epochs))
+    log_print('  learning_rate={}'.format(learning_rate))
+    log_print('  separate data :{}'.format(separate))
     if separate:
-        log_print('    take first or second part of data :', 'first' if load_first_part else 'second')
-    log_print('  model_file : ', model_file)
-    log_print('  nOutput = ', nOutput)
-    log_print('  model will be saved to : ', save_file_name + '*.npz')
-    log_print('  log will be saved to : ', logfile)
-    log_print('  test only :', test_only)
-    log_print('  only train from this layer : ', train_from_layer)
-    log_print('  prefix to save file : ', prefix)
+        s = '    take first or second part of data :', 'first' if load_first_part else 'second'
+        log_print(s)
+    log_print('  model_file :{}'.format(model_file))
+    log_print('  nOutput = {}'.format(nOutput))
+    log_print('  model will be saved to : {}'.format(save_file_name + '*.npz'))
+    log_print('  log will be saved to : {}'.format(logfile))
+    log_print('  test only :{}'.format(test_only))
+    log_print('  only train from this layer : {}'.format(train_from_layer))
+    log_print('  prefix to save file : {}'.format(prefix))
 
     log_print()
 
@@ -132,9 +133,9 @@ def main():
         else:
             X_train, y_train, X_val, y_val, X_test, y_test = X_train_2, y_train_2, X_val_2, y_val_2, X_test_2, y_test_2
 
-    log_print(len(X_train), 'train images')
-    log_print(len(X_val), 'val images')
-    log_print(len(X_test), 'test images')
+    log_print('{} train images'.format(len(X_train)))
+    log_print('{} val images'.format(len(X_val)))
+    log_print('{} test images'.format(len(X_test)))
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
