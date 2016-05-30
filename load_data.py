@@ -95,7 +95,7 @@ def load_dataset():
     return X_train, y_train, X_val, y_val, X_test, y_test
 
 
-def seperate_data(data_x, data_y):
+def seperate_data(data_x, data_y, y_start_from_zero=True):
     assert len(data_x) == len(data_y)
     index1 = []
     index2 = []
@@ -111,7 +111,10 @@ def seperate_data(data_x, data_y):
 
     data_2_x = data_x[index2]
     data_2_y = data_y[index2]
-
+    if y_start_from_zero:
+        data_1_y -= 5
+        data_2_y -= 5
+        
     return data_1_x, data_1_y, data_2_x, data_2_y
 
 
