@@ -104,7 +104,7 @@ def main():
     log_print('  learning_rate={}'.format(learning_rate))
     log_print('  separate data :{}'.format(separate))
     if separate:
-        s = '    take first or second part of data :', 'first' if load_first_part else 'second'
+        s = '    take first or second part of data :'+('first' if load_first_part else 'second')
         log_print(s)
     log_print('  model_file :{}'.format(model_file))
     log_print('  nOutput = {}'.format(nOutput))
