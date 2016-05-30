@@ -141,7 +141,7 @@ def main():
     loss = loss.mean()
 
     if train_from_layer:
-        layers_to_train = lasagne.layers.get_all_layers(network, treat_as_input=net[train_from_layer])
+        layers_to_train = lasagne.layers.get_all_layers(network, treat_as_input=[net[train_from_layer]])
         params = get_all_params_from_layers(layers_to_train, trainable=True)
     else:
         params = lasagne.layers.get_all_params(network, trainable=True)
