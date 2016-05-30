@@ -43,10 +43,10 @@ def get_all_params_from_layers(layers, unwrap_shared=True, **tags):
 # Everything else will be handled in our main program now. We could pull out
 # more functions to better separate the code, but it wouldn't make it any
 # easier to read.
-def log_and_print(text, logfile):
+def log_and_print(logfile,*arg):
     with open(logfile, 'a') as f:
-        f.write(text)
-        print(text)
+        f.write(*arg)
+        print(*arg)
 
 
 def main():
