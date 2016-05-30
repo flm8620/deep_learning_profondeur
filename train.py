@@ -150,7 +150,6 @@ def main():
         net = build_lenet5(input_var, nOutput)
         network = net['output']
     elif model == 'cifar':
-        # pass
         net = cifar10_nin.build_model2(input_var, nOutput)
         network = net['output']
     else:
