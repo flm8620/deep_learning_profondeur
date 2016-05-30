@@ -82,7 +82,10 @@ def main():
         exit()
 
     if separate:
-        save_file_name = 'half_' + save_file_name
+        if load_first_part:
+            save_file_name = 'firsthalf_' + save_file_name
+        else:
+            save_file_name = 'secondhalf_' + save_file_name
         nOutput = 5
     else:
         nOutput = 10
@@ -93,7 +96,7 @@ def main():
     if prefix:
         save_file_name = prefix + save_file_name
     else:
-        save_file_name = str(random.randint(10000, 99999)) + save_file_name
+        save_file_name = str(random.randint(10000, 99999)) + '_' + save_file_name
 
     logfile = save_file_name + '_log.txt'
     log_print = functools.partial(log_and_print, logfile=logfile)
