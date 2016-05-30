@@ -114,7 +114,7 @@ def main():
     log_print('  only train from this layer : {}'.format(train_from_layer))
     log_print('  prefix to save file : {}'.format(prefix))
 
-    log_print()
+    log_print('')
 
     log_print("Loading data...")
     if model == 'cifar':
