@@ -132,7 +132,7 @@ def load_dataset_seperate(get_first_part=True):
 
 def get_cifar10():
     file_train = []
-    for i in [1,2,3,4]:
+    for i in [1,2,3]:
         file_train.append('cifar-10-batches-py/data_batch_' + str(i))
     file_val = 'cifar-10-batches-py/data_batch_5'
     file_test = 'cifar-10-batches-py/test_batch'

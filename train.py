@@ -45,7 +45,7 @@ def get_all_params_from_layers(layers, unwrap_shared=True, **tags):
 # easier to read.
 def log_and_print(text, logfile):
     with open(logfile, 'a') as f:
-        f.write(text)
+        f.write(text+'\n')
         print(text)
 
 
