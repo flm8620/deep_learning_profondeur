@@ -18,6 +18,7 @@ import sys
 import os
 import time
 import argparse
+import random
 
 import numpy as np
 import theano
@@ -29,6 +30,7 @@ from lenet5 import *
 from load_data import *
 
 from itertools import chain
+import functools
 
 
 def get_all_params_from_layers(layers, unwrap_shared=True, **tags):
@@ -41,6 +43,11 @@ def get_all_params_from_layers(layers, unwrap_shared=True, **tags):
 # Everything else will be handled in our main program now. We could pull out
 # more functions to better separate the code, but it wouldn't make it any
 # easier to read.
+def log_and_print(logfile, text):
+    with open(logfile, 'a') as f:
+        f.write(text)
+        print(text)
+
 
 def main():
     parser = argparse.ArgumentParser()
@@ -54,6 +61,7 @@ def main():
     parser.add_argument('-t', '--test-only', action='store_true')
     parser.add_argument('-T', '--train-from-layer', help='only train on this layer and those layers after it, \
     don\'t update weights of layers before this layer')
+    parser.add_argument('-p', '--prefix', help='prefix to add at the beginning of model save file')
 
     args = parser.parse_args()
 
@@ -67,6 +75,7 @@ def main():
     test_only = args.test_only
     load_first_part = not args.second_part
     train_from_layer = args.train_from_layer
+    prefix = args.prefix
 
     if test_only and not model_file:
         print('you need to specify a model file to test')
@@ -78,23 +87,35 @@ def main():
     else:
         nOutput = 10
 
-    print('--Parameter--')
-    print('  model=', model)
-    print('  batch_size=', batch_size)
-    print('  num_epochs=', num_epochs)
-    print('  learning_rate=', learning_rate)
-    print('  separate data :', separate)
+    if train_from_layer:
+        save_file_name = 'from_' + train_from_layer + save_file_name
+
+    if prefix:
+        save_file_name = prefix + save_file_name
+    else:
+        save_file_name = str(random.randint(10000, 99999)) + save_file_name
+
+    logfile = save_file_name + '_log.txt'
+    log_print = functools.partial(log_and_print, logfile=logfile)
+    log_print('--Parameter--')
+    log_print('  model=', model)
+    log_print('  batch_size=', batch_size)
+    log_print('  num_epochs=', num_epochs)
+    log_print('  learning_rate=', learning_rate)
+    log_print('  separate data :', separate)
     if separate:
-        print('    take first or second part of data :', 'first' if load_first_part else 'second')
-    print('  model_file : ', model_file)
-    print('  nOutput = ', nOutput)
-    print('  model will be saved to : ', save_file_name + '*.npz')
-    print('  test only :', test_only)
-    print('  only train from this layer : ', train_from_layer)
+        log_print('    take first or second part of data :', 'first' if load_first_part else 'second')
+    log_print('  model_file : ', model_file)
+    log_print('  nOutput = ', nOutput)
+    log_print('  model will be saved to : ', save_file_name + '*.npz')
+    log_print('  log will be saved to : ', logfile)
+    log_print('  test only :', test_only)
+    log_print('  only train from this layer : ', train_from_layer)
+    log_print('  prefix to save file : ', prefix)
 
-    print()
+    log_print()
 
-    print("Loading data...")
+    log_print("Loading data...")
     if model == 'cifar':
         X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
     elif model == 'lenet':
@@ -111,16 +132,16 @@ def main():
         else:
             X_train, y_train, X_val, y_val, X_test, y_test = X_train_2, y_train_2, X_val_2, y_val_2, X_test_2, y_test_2
 
-    print(len(X_train), 'train images')
-    print(len(X_val), 'val images')
-    print(len(X_test), 'test images')
+    log_print(len(X_train), 'train images')
+    log_print(len(X_val), 'val images')
+    log_print(len(X_test), 'test images')
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
     target_var = T.ivector('targets')
 
     # Create neural network model (depending on first command line parameter)
-    print("Building model and compiling functions...")
+    log_print("Building model and compiling functions...")
     if model == 'lenet':
         net = build_lenet5(input_var, nOutput)
         network = net['output']
@@ -159,7 +180,7 @@ def main():
     val_fn = theano.function([input_var, target_var], [test_loss, test_acc])
 
     if not test_only:
-        print("Starting training...")
+        log_print("Starting training...")
 
         for epoch in range(num_epochs):
             time_epoch = time.time()
@@ -189,21 +210,22 @@ def main():
                 val_batches += 1
 
             # Then we print the results for this epoch:
-            print("Epoch {} of {} took {:.3f}s".format(
-                epoch + 1, num_epochs, time.time() - start_time))
-            print("  training loss:\t\t{:.6f}".format(train_err / train_batches))
-            print("  validation loss:\t\t{:.6f}".format(val_err / val_batches))
-            print("  validation accuracy:\t\t{:.2f} %".format(
-                val_acc / val_batches * 100))
+            log1 = "Epoch {} of {} took {:.3f}m".format(epoch + 1, num_epochs, (time.time() - start_time) / 60.)
+            log2 = "  training loss:\t\t{:.6f}".format(train_err / train_batches)
+            log3 = "  validation loss:\t\t{:.6f}".format(val_err / val_batches)
+            log4 = "  validation accuracy:\t\t{:.2f} %".format(val_acc / val_batches * 100)
+            log_print(log1)
+            log_print(log2)
+            log_print(log3)
+            log_print(log4)
 
             # Optionally, you could now dump the network weights to a file like this:
 
             model_file = save_file_name + str(epoch) + '.npz'
-            print('model saved to ' + model_file)
+            log_print('model saved to ' + model_file)
             np.savez(model_file, *(lasagne.layers.get_all_param_values(network)))
-            print('epoch_time ', (time.time() - time_epoch) / 60., 'minutes')
 
-    print('testing network ...')
+    log_print('testing network ...')
     # After training, we compute and print the test error:
     test_err = 0
     test_acc = 0
@@ -214,9 +236,9 @@ def main():
         test_err += err
         test_acc += acc
         test_batches += 1
-    print("Final results:")
-    print("  test loss:\t\t\t{:.6f}".format(test_err / test_batches))
-    print("  test accuracy:\t\t{:.2f} %".format(
+    log_print("Final results:")
+    log_print("  test loss:\t\t\t{:.6f}".format(test_err / test_batches))
+    log_print("  test accuracy:\t\t{:.2f} %".format(
         test_acc / test_batches * 100))
 
 

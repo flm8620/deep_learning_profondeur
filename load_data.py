@@ -114,7 +114,7 @@ def seperate_data(data_x, data_y, y_start_from_zero=True):
     if y_start_from_zero:
         data_1_y -= 5
         data_2_y -= 5
-        
+
     return data_1_x, data_1_y, data_2_x, data_2_y
 
 
@@ -132,7 +132,7 @@ def load_dataset_seperate(get_first_part=True):
 
 def get_cifar10():
     file_train = []
-    for i in [1]:
+    for i in [1,2,3,4]:
         file_train.append('cifar-10-batches-py/data_batch_' + str(i))
     file_val = 'cifar-10-batches-py/data_batch_5'
     file_test = 'cifar-10-batches-py/test_batch'
