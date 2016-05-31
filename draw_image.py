@@ -60,11 +60,11 @@ def main():
     # Load the dataset
     print("Loading data...")
     if only_input:
-        X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part, substract_mean=False)
+        X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part,
+                                                                                substract_mean=False)
 
     else:
         X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part)
-
 
     print(len(X_train), 'train images')
     print(len(X_val), 'val images')
@@ -99,11 +99,12 @@ def main():
         y_set = y_test
 
     if only_input:
-        image = Image.fromarray(X_set[imageID])
-        if model=='cifar':
-            image=image.reshape((3,32,32))
+        image_data = X_set[imageID]
+        if model == 'cifar':
+            image_data = image_data.reshape((3, 32, 32))
         else:
-            image = image.reshape((28, 28))
+            image_data = image_data.reshape((28, 28))
+        image = Image.fromarray(image_data)
         image.save(filename)
         print('image saved to :', filename)
         exit()
@@ -127,7 +128,7 @@ def main():
         img_shape=(h, w), tile_shape=(width, width),
         tile_spacing=(1, 1)))
     image.save(filename)
-    print('image saved to :',filename)
+    print('image saved to :', filename)
 
 
 def scale_to_unit_interval(ndar, eps=1e-8):
