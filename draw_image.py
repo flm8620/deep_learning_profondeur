@@ -9,7 +9,7 @@ import theano.tensor as T
 import lasagne
 
 import load_data
-#import model_io
+import model_io
 import random
 
 try:
