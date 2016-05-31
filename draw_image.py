@@ -103,7 +103,7 @@ def main():
         width += 1
 
     if width * width > nKernel:
-        images_output = np.concatenate((images_output, np.zeros((nKernel - width * width, w * h))), axis=0)
+        images_output = np.concatenate((images_output, np.zeros((width * width - nKernel, w * h))), axis=0)
 
     image = Image.fromarray(tile_raster_images(
         X=images_output,  # chose batch 0
