@@ -124,6 +124,7 @@ def main():
         print('weights shape :', weights.shape)
         foo, nKernel, h, w = weights.shape
         images_output = net[layer_name].W.flatten(2).eval()
+        print('flatten weights shape :', weights.shape)
 
 
     width = 1
@@ -200,14 +201,14 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
         for ishp, tshp, tsp in zip(img_shape, tile_shape, tile_spacing)
         ]
 
-    if isinstance(X, tuple):
-        assert len(X) == 4
+    #if isinstance(X, tuple):
+    if X.ndim == 3: #RGB
         # Create an output np ndarray to store the image
         if output_pixel_vals:
-            out_array = np.zeros((out_shape[0], out_shape[1], 4),
+            out_array = np.zeros((out_shape[0], out_shape[1], 3),
                                  dtype='uint8')
         else:
-            out_array = np.zeros((out_shape[0], out_shape[1], 4),
+            out_array = np.zeros((out_shape[0], out_shape[1], 3),
                                  dtype=X.dtype)
 
         # colors default to 0, alpha defaults to 1 (opaque)
@@ -216,7 +217,8 @@ def tile_raster_images(X, img_shape, tile_shape, tile_spacing=(0, 0),
         else:
             channel_defaults = [0., 0., 0., 1.]
 
-        for i in range(4):
+        for i in range(3):
+            assert X[i] is not None
             if X[i] is None:
                 # if channel is None, fill it with zeros of the correct
                 # dtype
