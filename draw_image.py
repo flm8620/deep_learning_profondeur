@@ -10,7 +10,6 @@ import lasagne
 
 import load_data
 import model_io
-import random
 
 try:
     import PIL.Image as Image
@@ -40,7 +39,7 @@ def main():
     load_first_part = args.first_part
     imageID = args.imageID
     only_input = args.input
-    filename = str(random.randint(10000, 99999)) + '_' + model + '_' + layer_name + '_output.png'
+    filename = str(imageID) + '_' + model + '_' + layer_name + '_output.png'
     print('--Parameters--')
     print('  model         : ', model)
     print('  layer name    : ', layer_name)
