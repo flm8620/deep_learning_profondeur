@@ -98,7 +98,7 @@ def main():
     print("test y shape : ", np.array(all_test_y).shape)
 
     with open(filename, 'wb') as f:
-        pickle.dump([all_train_output, all_train_y, all_test_output, all_test_y], f)
+        pickle.dump([all_train_output, all_train_y, all_test_output, all_test_y], f, protocol=pickle.HIGHEST_PROTOCOL)
     print('... saved to ', filename)
 
 
