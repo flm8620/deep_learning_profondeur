@@ -27,6 +27,7 @@ def main():
     parser.add_argument('-d', '--dataset', choices=['train', 'val', 'test'], default='test')
     parser.add_argument('--no-separate', help='split the data', action='store_true')
     parser.add_argument('--first-part', help='take first part of data instead of the second', action='store_true')
+    parser.add_argument('-i', '--input', help='only get input image', action='store_true')
 
     args = parser.parse_args()
 
@@ -38,6 +39,7 @@ def main():
     chosen_set = args.dataset
     load_first_part = args.first_part
     imageID = args.imageID
+    only_input = args.input
     filename = str(random.randint(10000, 99999)) + '_' + model + '_' + layer_name + '_output.png'
     print('--Parameters--')
     print('  model         : ', model)
@@ -57,7 +59,12 @@ def main():
 
     # Load the dataset
     print("Loading data...")
-    X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part)
+    if only_input:
+        X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part, substract_mean=False)
+
+    else:
+        X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part)
+
 
     print(len(X_train), 'train images')
     print(len(X_val), 'val images')
@@ -91,6 +98,16 @@ def main():
         X_set = X_test
         y_set = y_test
 
+    if only_input:
+        image = Image.fromarray(X_set[imageID])
+        if model=='cifar':
+            image=image.reshape((3,32,32))
+        else:
+            image = image.reshape((28, 28))
+        image.save(filename)
+        print('image saved to :', filename)
+        exit()
+
     batch_output = get_output_image(np.array([X_set[imageID]]))
     images_output = batch_output[0]
     prediction = lasagne.layers.get_output(net_output)
@@ -110,6 +127,7 @@ def main():
         img_shape=(h, w), tile_shape=(width, width),
         tile_spacing=(1, 1)))
     image.save(filename)
+    print('image saved to :',filename)
 
 
 def scale_to_unit_interval(ndar, eps=1e-8):

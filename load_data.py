@@ -117,7 +117,7 @@ def seperate_data(data_x, data_y, y_start_from_zero=True):
     return data_1_x, data_1_y, data_2_x, data_2_y
 
 
-def get_cifar10():
+def get_cifar10(substract_mean = True):
     file_train = []
     for i in [1, 2, 3]:
         file_train.append('cifar-10-batches-py/data_batch_' + str(i))
@@ -154,22 +154,23 @@ def get_cifar10():
 
     all_x = np.concatenate((train_x, val_x, test_x), axis=0)
     color_mean = all_x.mean(axis=(0, 2, 3))
-    train_x[:, 0, :, :] -= color_mean[0]
-    train_x[:, 1, :, :] -= color_mean[1]
-    train_x[:, 2, :, :] -= color_mean[2]
-    val_x[:, 0, :, :] -= color_mean[0]
-    val_x[:, 1, :, :] -= color_mean[1]
-    val_x[:, 2, :, :] -= color_mean[2]
-    test_x[:, 0, :, :] -= color_mean[0]
-    test_x[:, 1, :, :] -= color_mean[1]
-    test_x[:, 2, :, :] -= color_mean[2]
+    if substract_mean:
+        train_x[:, 0, :, :] -= color_mean[0]
+        train_x[:, 1, :, :] -= color_mean[1]
+        train_x[:, 2, :, :] -= color_mean[2]
+        val_x[:, 0, :, :] -= color_mean[0]
+        val_x[:, 1, :, :] -= color_mean[1]
+        val_x[:, 2, :, :] -= color_mean[2]
+        test_x[:, 0, :, :] -= color_mean[0]
+        test_x[:, 1, :, :] -= color_mean[1]
+        test_x[:, 2, :, :] -= color_mean[2]
 
     return train_x, train_y, val_x, val_y, test_x, test_y
 
 
-def load_dataset(data_type, separate, load_first_part):
+def load_dataset(data_type, separate, load_first_part, substract_mean=True):
     if data_type == 'cifar':
-        X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
+        X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10(substract_mean)
     elif data_type == 'lenet':
         X_train, y_train, X_val, y_val, X_test, y_test = load_dataset_mnist()
     else:
