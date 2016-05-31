@@ -123,8 +123,9 @@ def main():
         weights = net[layer_name].W.get_value()
         print('weights shape :', weights.shape)
         foo, nKernel, h, w = weights.shape
-        images_output = net[layer_name].W.flatten(2).eval()
-        print('flatten weights shape :', weights.shape)
+        flatten_w = net[layer_name].W.flatten(2)
+        images_output = flatten_w.eval()
+        print('flatten weights shape :', images_output.shape)
 
 
     width = 1
