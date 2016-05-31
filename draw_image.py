@@ -37,6 +37,7 @@ def main():
     layer_name = args.layer
     chosen_set = args.dataset
     load_first_part = args.first_part
+    imageID = args.imageID
     filename = str(random.randint(10000, 99999)) + '_' + model + '_' + layer_name + '_output.png'
     print('--Parameters--')
     print('  model         : ', model)
@@ -90,7 +91,7 @@ def main():
         X_set = X_test
         y_set = y_test
 
-    batch_output = get_output_image(np.array([X_set])).flatten(3)
+    batch_output = get_output_image(np.array([X_set[imageID]])).flatten(3)
     images_output = batch_output[0]
     prediction = lasagne.layers.get_output(net_output)
 
