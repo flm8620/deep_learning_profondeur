@@ -74,7 +74,7 @@ def main():
     print("Getting middle output...")
 
     output = lasagne.layers.get_output(net[layer_name])
-    get_output_image = theano.function([input_var], output)
+    get_output_image = theano.function([input_var], output.flatten(3))
 
     output_shape = np.array(lasagne.layers.get_output_shape(net[layer_name]))
     foo, nKernel, h, w = output_shape
@@ -91,7 +91,7 @@ def main():
         X_set = X_test
         y_set = y_test
 
-    batch_output = get_output_image(np.array([X_set[imageID]])).flatten(3)
+    batch_output = get_output_image(np.array([X_set[imageID]]))
     images_output = batch_output[0]
     prediction = lasagne.layers.get_output(net_output)
 
