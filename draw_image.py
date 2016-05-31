@@ -136,7 +136,7 @@ def main():
         if images_output.ndim == 2:
             images_output = np.concatenate((images_output, np.zeros((width * width - nKernel, w * h))), axis=0)
         elif images_output.ndim == 3:
-            images_output = np.concatenate((images_output, np.zeros((3, width * width - nKernel, w * h))), axis=0)
+            images_output = np.concatenate((images_output, np.zeros((width * width - nKernel, 3, w * h))), axis=0)
         else:
             assert False
 
