@@ -102,6 +102,7 @@ def main():
         image_data = X_set[imageID]
         if model == 'cifar':
             image_data = image_data.reshape((3, 32, 32))
+            image_data = np.rollaxis(image_data, 0, 3)
         else:
             image_data = image_data.reshape((28, 28))
         image = Image.fromarray(image_data)
