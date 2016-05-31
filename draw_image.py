@@ -27,7 +27,7 @@ def main():
     parser.add_argument('--no-separate', help='split the data', action='store_true')
     parser.add_argument('--first-part', help='take first part of data instead of the second', action='store_true')
     parser.add_argument('-i', '--input', help='only get input image', action='store_true')
-    parser.add_argument('-w', '--draw-weights', type=int, help='only draw weights, give the width of kernel')
+    parser.add_argument('-w', '--draw-weights', help='only draw weights, give the width of kernel', action='store_true')
 
     args = parser.parse_args()
 
@@ -40,7 +40,7 @@ def main():
     load_first_part = args.first_part
     imageID = args.imageID
     only_input = args.input
-    only_weights_width = args.draw_weights
+    only_weights = args.draw_weights
     filename = str(imageID) + '_' + model + '_' + layer_name + '_output.png'
     print('--Parameters--')
     print('  model         : ', model)
@@ -60,7 +60,7 @@ def main():
 
     # Load the dataset
     print("Loading data...")
-    if not only_weights_width:
+    if not only_weights:
         if only_input:
             X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part,
                                                                                     substract_mean=False)
@@ -103,7 +103,7 @@ def main():
     print("Building model and compiling functions...")
     net, net_output = model_io.load_model(model, model_file, nOutput, input_var)
 
-    if not only_weights_width:
+    if not only_weights:
         print("Getting middle output...")
 
         output = lasagne.layers.get_output(net[layer_name])
