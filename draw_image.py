@@ -9,7 +9,7 @@ import theano.tensor as T
 import lasagne
 
 import load_data
-import model_io
+#import model_io
 import random
 
 try:
@@ -62,13 +62,37 @@ def main():
     if only_input:
         X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part,
                                                                                 substract_mean=False)
-
     else:
         X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part)
 
     print(len(X_train), 'train images')
     print(len(X_val), 'val images')
     print(len(X_test), 'test images')
+
+    print('getting from' + chosen_set)
+    if chosen_set == 'train':
+        X_set = X_train
+        y_set = y_train
+    elif chosen_set == 'val':
+        X_set = X_val
+        y_set = y_val
+    else:
+        X_set = X_test
+        y_set = y_test
+
+    if only_input:
+        image_data = X_set[imageID]
+        if model == 'cifar':
+            image_data = image_data.reshape((3, 32, 32))
+            image_data = np.rollaxis(image_data, 0, 3) # 3 32 32 to 32 32 3
+        else:
+            image_data = image_data.reshape((28, 28))
+        image_data *= 255
+        image_data = image_data.astype('uint8')
+        image = Image.fromarray(image_data)
+        image.save(filename)
+        print('image saved to :', filename)
+        exit()
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
@@ -86,29 +110,6 @@ def main():
     output_shape = np.array(lasagne.layers.get_output_shape(net[layer_name]))
     foo, nKernel, h, w = output_shape
     print('layer ' + layer_name + ' shape :', output_shape)
-
-    print('getting from' + chosen_set)
-    if chosen_set == 'train':
-        X_set = X_train
-        y_set = y_train
-    elif chosen_set == 'val':
-        X_set = X_val
-        y_set = y_val
-    else:
-        X_set = X_test
-        y_set = y_test
-
-    if only_input:
-        image_data = X_set[imageID]
-        if model == 'cifar':
-            image_data = image_data.reshape((3, 32, 32))
-            image_data = np.rollaxis(image_data, 0, 3)
-        else:
-            image_data = image_data.reshape((28, 28))
-        image = Image.fromarray(image_data)
-        image.save(filename)
-        print('image saved to :', filename)
-        exit()
 
     batch_output = get_output_image(np.array([X_set[imageID]]))
     images_output = batch_output[0]
