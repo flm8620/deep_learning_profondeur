@@ -27,6 +27,7 @@ def main():
     parser.add_argument('--no-separate', help='split the data', action='store_true')
     parser.add_argument('--first-part', help='take first part of data instead of the second', action='store_true')
     parser.add_argument('-i', '--input', help='only get input image', action='store_true')
+    parser.add_argument('-w', '--draw-weights', type=int, help='only draw weights, give the width of kernel')
 
     args = parser.parse_args()
 
@@ -39,6 +40,7 @@ def main():
     load_first_part = args.first_part
     imageID = args.imageID
     only_input = args.input
+    only_weights_width = args.draw_weights
     filename = str(imageID) + '_' + model + '_' + layer_name + '_output.png'
     print('--Parameters--')
     print('  model         : ', model)
@@ -58,40 +60,41 @@ def main():
 
     # Load the dataset
     print("Loading data...")
-    if only_input:
-        X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part,
-                                                                                substract_mean=False)
-    else:
-        X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part)
-
-    print(len(X_train), 'train images')
-    print(len(X_val), 'val images')
-    print(len(X_test), 'test images')
-
-    print('getting from' + chosen_set)
-    if chosen_set == 'train':
-        X_set = X_train
-        y_set = y_train
-    elif chosen_set == 'val':
-        X_set = X_val
-        y_set = y_val
-    else:
-        X_set = X_test
-        y_set = y_test
-
-    if only_input:
-        image_data = X_set[imageID]
-        if model == 'cifar':
-            image_data = image_data.reshape((3, 32, 32))
-            image_data = np.rollaxis(image_data, 0, 3) # 3 32 32 to 32 32 3
+    if not only_weights_width:
+        if only_input:
+            X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part,
+                                                                                    substract_mean=False)
         else:
-            image_data = image_data.reshape((28, 28))
-        image_data *= 255
-        image_data = image_data.astype('uint8')
-        image = Image.fromarray(image_data)
-        image.save(filename)
-        print('image saved to :', filename)
-        exit()
+            X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part)
+
+        print(len(X_train), 'train images')
+        print(len(X_val), 'val images')
+        print(len(X_test), 'test images')
+
+        print('getting from' + chosen_set)
+        if chosen_set == 'train':
+            X_set = X_train
+            y_set = y_train
+        elif chosen_set == 'val':
+            X_set = X_val
+            y_set = y_val
+        else:
+            X_set = X_test
+            y_set = y_test
+
+        if only_input:
+            image_data = X_set[imageID]
+            if model == 'cifar':
+                image_data = image_data.reshape((3, 32, 32))
+                image_data = np.rollaxis(image_data, 0, 3) # 3 32 32 to 32 32 3
+            else:
+                image_data = image_data.reshape((28, 28))
+            image_data *= 255
+            image_data = image_data.astype('uint8')
+            image = Image.fromarray(image_data)
+            image.save(filename)
+            print('image saved to :', filename)
+            exit()
 
     # Prepare Theano variables for inputs and targets
     input_var = T.tensor4('inputs')
@@ -100,22 +103,28 @@ def main():
     print("Building model and compiling functions...")
     net, net_output = model_io.load_model(model, model_file, nOutput, input_var)
 
-    # middle_output = theano.function([input_var], net[layer_name].output)
-    print("Getting middle output...")
+    if not only_weights_width:
+        print("Getting middle output...")
 
-    output = lasagne.layers.get_output(net[layer_name])
-    get_output_image = theano.function([input_var], output.flatten(3))
+        output = lasagne.layers.get_output(net[layer_name])
+        get_output_image = theano.function([input_var], output.flatten(3))
 
-    output_shape = np.array(lasagne.layers.get_output_shape(net[layer_name]))
-    foo, nKernel, h, w = output_shape
-    print('layer ' + layer_name + ' shape :', output_shape)
+        output_shape = np.array(lasagne.layers.get_output_shape(net[layer_name]))
+        foo, nKernel, h, w = output_shape
+        print('layer ' + layer_name + ' shape :', output_shape)
 
-    batch_output = get_output_image(np.array([X_set[imageID]]))
-    images_output = batch_output[0]
-    prediction = lasagne.layers.get_output(net_output)
+        batch_output = get_output_image(np.array([X_set[imageID]]))
+        images_output = batch_output[0]
+        prediction = lasagne.layers.get_output(net_output)
 
-    get_pred = theano.function([input_var], prediction)
-    pred = get_pred(np.array([X_set[imageID]]))
+        get_pred = theano.function([input_var], prediction)
+        pred = get_pred(np.array([X_set[imageID]]))
+    else:
+        weights = net[layer_name].W.get_value()
+        print('weights shape :', weights.shape)
+        foo, nKernel, h, w = weights.shape
+        images_output = net[layer_name].W.flatten(2).eval()
+
 
     width = 1
     while width * width < nKernel:
