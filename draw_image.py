@@ -41,7 +41,10 @@ def main():
     imageID = args.imageID
     only_input = args.input
     only_weights = args.draw_weights
-    filename = str(imageID) + '_' + model + '_' + layer_name + '_output.png'
+    if not only_weights:
+        filename = str(imageID) + '_' + model + '_' + layer_name + '_output.png'
+    else:
+        filename = 'weight_' + model + '_' + layer_name + '_output.png'
     print('--Parameters--')
     print('  model         : ', model)
     print('  layer name    : ', layer_name)
