@@ -21,6 +21,7 @@ def main():
     parser.add_argument('--no-separate', help='split the data', action='store_true')
     parser.add_argument('--first-part', help='take first part of data instead of the second', action='store_true')
     parser.add_argument('-b', '--batch-size', type=int, default=64)
+    parser.add_argument('-n', '--data-num', type=int)
 
     args = parser.parse_args()
 
@@ -30,6 +31,8 @@ def main():
     model_file = args.model_file
     layer_name = args.layer
     load_first_part = args.first_part
+    data_num = args.data_num
+
     filename = model + '_' + layer_name + '_output.save'
     print('--Parameters--')
     print('  model         : ', model)
@@ -50,6 +53,13 @@ def main():
     # Load the dataset
     print("Loading data...")
     X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part)
+    if data_num:
+        X_train = X_train[:data_num]
+        y_train = y_train[:data_num]
+        X_val = X_val[:data_num]
+        y_val = y_val[:data_num]
+        X_test = X_test[:data_num]
+        y_test = y_test[:data_num]
 
     print(len(X_train), 'train images')
     print(len(X_val), 'val images')
