@@ -123,7 +123,7 @@ def main():
         weights = net[layer_name].W.get_value()
         print('weights shape :', weights.shape)
         foo, nKernel, h, w = weights.shape
-        flatten_w = net[layer_name].W.flatten(2)
+        flatten_w = net[layer_name].W.flatten(3)
         images_output = flatten_w.eval()
         print('flatten weights shape :', images_output.shape)
 
@@ -133,7 +133,12 @@ def main():
         width += 1
 
     if width * width > nKernel:
-        images_output = np.concatenate((images_output, np.zeros((width * width - nKernel, w * h))), axis=0)
+        if images_output.ndim == 2:
+            images_output = np.concatenate((images_output, np.zeros((width * width - nKernel, w * h))), axis=0)
+        elif images_output.ndim == 3:
+            images_output = np.concatenate((images_output, np.zeros((3, width * width - nKernel, w * h))), axis=0)
+        else:
+            assert False
 
     image = Image.fromarray(tile_raster_images(
         X=images_output,  # chose batch 0
