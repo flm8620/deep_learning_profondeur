@@ -9,6 +9,7 @@ import six.moves.cPickle as pickle
 import numpy
 import functools
 
+
 def log_and_print(text, logfile):
     with open(logfile, 'a') as f:
         f.write(text + '\n')
@@ -26,7 +27,7 @@ def main():
     datafile = args.datafile
     usePCA = args.pca
     nPCA = args.n_pca
-    save_file_name = 'svm_'+datafile + .'txt'
+    save_file_name = 'svm_' + datafile + '.txt'
     logfile = save_file_name + '_log.txt'
     log_print = functools.partial(log_and_print, logfile=logfile)
 
