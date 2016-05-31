@@ -69,7 +69,7 @@ def main():
         if pre[i] != all_test_y[i]:
             wrong += 1
 
-        log_print('test acc : {}'.format(wrong / float(len(pre))))
+    log_print('test acc : {}'.format(wrong / float(len(pre))))
 
 
 if __name__ == '__main__':
