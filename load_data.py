@@ -42,7 +42,7 @@ def iterate_minibatches(inputs, targets, batchsize, shuffle=False):
 # This is just some way of getting the MNIST dataset from an online location
 # and loading it into numpy arrays. It doesn't involve Lasagne at all.
 
-def load_dataset():
+def load_dataset_mnist():
     # We first define a download function, supporting both Python 2 and 3.
     if sys.version_info[0] == 2:
         from urllib import urlretrieve
@@ -117,21 +117,9 @@ def seperate_data(data_x, data_y, y_start_from_zero=True):
     return data_1_x, data_1_y, data_2_x, data_2_y
 
 
-def load_dataset_seperate(get_first_part=True):
-    X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
-
-    X_train_1, y_train_1, X_train_2, y_train_2 = seperate_data(X_train, y_train)
-    X_val_1, y_val_1, X_val_2, y_val_2 = seperate_data(X_val, y_val)
-    X_test_1, y_test_1, X_test_2, y_test_2 = seperate_data(X_test, y_test)
-    if get_first_part:
-        return X_train_1, y_train_1, X_val_1, y_val_1, X_test_1, y_test_1
-    else:
-        return X_train_2, y_train_2, X_val_2, y_val_2, X_test_2, y_test_2
-
-
 def get_cifar10():
     file_train = []
-    for i in [1,2,3]:
+    for i in [1, 2, 3]:
         file_train.append('cifar-10-batches-py/data_batch_' + str(i))
     file_val = 'cifar-10-batches-py/data_batch_5'
     file_test = 'cifar-10-batches-py/test_batch'
@@ -177,3 +165,22 @@ def get_cifar10():
     test_x[:, 2, :, :] -= color_mean[2]
 
     return train_x, train_y, val_x, val_y, test_x, test_y
+
+
+def load_dataset(data_type, separate, load_first_part):
+    if data_type == 'cifar':
+        X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
+    elif data_type == 'lenet':
+        X_train, y_train, X_val, y_val, X_test, y_test = load_dataset_mnist()
+    else:
+        assert False
+
+    if separate:
+        X_train_1, y_train_1, X_train_2, y_train_2 = seperate_data(X_train, y_train)
+        X_val_1, y_val_1, X_val_2, y_val_2 = seperate_data(X_val, y_val)
+        X_test_1, y_test_1, X_test_2, y_test_2 = seperate_data(X_test, y_test)
+        if load_first_part:
+            X_train, y_train, X_val, y_val, X_test, y_test = X_train_1, y_train_1, X_val_1, y_val_1, X_test_1, y_test_1
+        else:
+            X_train, y_train, X_val, y_val, X_test, y_test = X_train_2, y_train_2, X_val_2, y_val_2, X_test_2, y_test_2
+    return X_train, y_train, X_val, y_val, X_test, y_test

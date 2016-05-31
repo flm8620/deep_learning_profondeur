@@ -14,20 +14,16 @@ a separate repository: https://github.com/Lasagne/Recipes
 
 from __future__ import print_function
 
-import sys
-import os
 import time
 import argparse
 import random
+import lasagne
 
 import numpy as np
 import theano
 import theano.tensor as T
-
-import lasagne
-import cifar10_nin
-from lenet5 import *
-from load_data import *
+import model_io
+import load_data
 
 from itertools import chain
 import functools
@@ -45,7 +41,7 @@ def get_all_params_from_layers(layers, unwrap_shared=True, **tags):
 # easier to read.
 def log_and_print(text, logfile):
     with open(logfile, 'a') as f:
-        f.write(text+'\n')
+        f.write(text + '\n')
         print(text)
 
 
@@ -107,7 +103,7 @@ def main():
     log_print('  learning_rate={}'.format(learning_rate))
     log_print('  separate data :{}'.format(separate))
     if separate:
-        s = '    take first or second part of data :'+('first' if load_first_part else 'second')
+        s = '    take first or second part of data :' + ('first' if load_first_part else 'second')
         log_print(s)
     log_print('  model_file :{}'.format(model_file))
     log_print('  nOutput = {}'.format(nOutput))
@@ -120,21 +116,7 @@ def main():
     log_print('')
 
     log_print("Loading data...")
-    if model == 'cifar':
-        X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
-    elif model == 'lenet':
-        X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
-    else:
-        assert False
-
-    if separate:
-        X_train_1, y_train_1, X_train_2, y_train_2 = seperate_data(X_train, y_train)
-        X_val_1, y_val_1, X_val_2, y_val_2 = seperate_data(X_val, y_val)
-        X_test_1, y_test_1, X_test_2, y_test_2 = seperate_data(X_test, y_test)
-        if load_first_part:
-            X_train, y_train, X_val, y_val, X_test, y_test = X_train_1, y_train_1, X_val_1, y_val_1, X_test_1, y_test_1
-        else:
-            X_train, y_train, X_val, y_val, X_test, y_test = X_train_2, y_train_2, X_val_2, y_val_2, X_test_2, y_test_2
+    X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part)
 
     log_print('{} train images'.format(len(X_train)))
     log_print('{} val images'.format(len(X_val)))
@@ -146,33 +128,21 @@ def main():
 
     # Create neural network model (depending on first command line parameter)
     log_print("Building model and compiling functions...")
-    if model == 'lenet':
-        net = build_lenet5(input_var, nOutput)
-        network = net['output']
-    elif model == 'cifar':
-        net = cifar10_nin.build_model2(input_var, nOutput)
-        network = net['output']
-    else:
-        print("Unrecognized model type %r." % model)
-        return
-    if model_file is not None:
-        with np.load(model_file) as f:
-            param_values = [f['arr_%d' % i] for i in range(len(f.files))]
-        lasagne.layers.set_all_param_values(network, param_values)
+    net, net_output = model_io.load_model(model, model_file, nOutput, input_var)
 
-    prediction = lasagne.layers.get_output(network)
+    prediction = lasagne.layers.get_output(net_output)
     loss = lasagne.objectives.categorical_crossentropy(prediction, target_var)
     loss = loss.mean()
 
     if train_from_layer:
-        layers_to_train = lasagne.layers.get_all_layers(network, treat_as_input=[net[train_from_layer]])
+        layers_to_train = lasagne.layers.get_all_layers(net_output, treat_as_input=[net[train_from_layer]])
         params = get_all_params_from_layers(layers_to_train, trainable=True)
     else:
-        params = lasagne.layers.get_all_params(network, trainable=True)
+        params = lasagne.layers.get_all_params(net_output, trainable=True)
 
     updates = lasagne.updates.nesterov_momentum(loss, params, learning_rate=learning_rate, momentum=0.9)
 
-    test_prediction = lasagne.layers.get_output(network, deterministic=True)
+    test_prediction = lasagne.layers.get_output(net_output, deterministic=True)
     test_loss = lasagne.objectives.categorical_crossentropy(test_prediction, target_var)
     test_loss = test_loss.mean()
 
@@ -186,13 +156,12 @@ def main():
         log_print("Starting training...")
 
         for epoch in range(num_epochs):
-            time_epoch = time.time()
 
             train_err = 0
             train_batches = 0
             start_time = time.time()
             print("Training stage:")
-            for batch in iterate_minibatches(X_train, y_train, batch_size, shuffle=True):
+            for batch in load_data.iterate_minibatches(X_train, y_train, batch_size, shuffle=True):
                 time_batch = time.time()
                 inputs, targets = batch
                 this_train_err = train_fn(inputs, targets)
@@ -205,7 +174,7 @@ def main():
             val_acc = 0
             val_batches = 0
             print("Validation stage ..")
-            for batch in iterate_minibatches(X_val, y_val, batch_size, shuffle=False):
+            for batch in load_data.iterate_minibatches(X_val, y_val, batch_size, shuffle=False):
                 inputs, targets = batch
                 err, acc = val_fn(inputs, targets)
                 val_err += err
@@ -226,14 +195,14 @@ def main():
 
             model_file = save_file_name + str(epoch) + '.npz'
             log_print('model saved to ' + model_file)
-            np.savez(model_file, *(lasagne.layers.get_all_param_values(network)))
+            model_io.save_model(model_file, net_output)
 
     log_print('testing network ...')
     # After training, we compute and print the test error:
     test_err = 0
     test_acc = 0
     test_batches = 0
-    for batch in iterate_minibatches(X_test, y_test, batch_size, shuffle=False):
+    for batch in load_data.iterate_minibatches(X_test, y_test, batch_size, shuffle=False):
         inputs, targets = batch
         err, acc = val_fn(inputs, targets)
         test_err += err
@@ -245,7 +214,7 @@ def main():
         test_acc / test_batches * 100))
 
 
-    #
+
     # And load them again later on like this:
     # with np.load('model.npz') as f:
     #     param_values = [f['arr_%d' % i] for i in range(len(f.files))]

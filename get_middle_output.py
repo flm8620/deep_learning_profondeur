@@ -1,18 +1,15 @@
 from __future__ import print_function
 
-import sys
-import os
-import time
 import argparse
 
 import numpy as np
+
 import theano
 import theano.tensor as T
-
 import lasagne
-from load_data import *
-from lenet5 import *
-import cifar10_nin
+
+import load_data
+import model_io
 import six.moves.cPickle as pickle
 
 
@@ -52,21 +49,7 @@ def main():
 
     # Load the dataset
     print("Loading data...")
-    if model == 'cifar':
-        X_train, y_train, X_val, y_val, X_test, y_test = get_cifar10()
-    elif model == 'lenet':
-        X_train, y_train, X_val, y_val, X_test, y_test = load_dataset()
-    else:
-        assert False
-
-    if separate:
-        X_train_1, y_train_1, X_train_2, y_train_2 = seperate_data(X_train, y_train)
-        X_val_1, y_val_1, X_val_2, y_val_2 = seperate_data(X_val, y_val)
-        X_test_1, y_test_1, X_test_2, y_test_2 = seperate_data(X_test, y_test)
-        if load_first_part:
-            X_train, y_train, X_val, y_val, X_test, y_test = X_train_1, y_train_1, X_val_1, y_val_1, X_test_1, y_test_1
-        else:
-            X_train, y_train, X_val, y_val, X_test, y_test = X_train_2, y_train_2, X_val_2, y_val_2, X_test_2, y_test_2
+    X_train, y_train, X_val, y_val, X_test, y_test = load_data.load_dataset(model, separate, load_first_part)
 
     print(len(X_train), 'train images')
     print(len(X_val), 'val images')
@@ -77,21 +60,7 @@ def main():
 
     # Create neural network model (depending on first command line parameter)
     print("Building model and compiling functions...")
-    if model == 'lenet':
-        net = build_lenet5(input_var, nOutput)
-        network = net['output']
-    elif model == 'cifar':
-        net = cifar10_nin.build_model2(input_var, nOutput)
-        network = net['output']
-    else:
-        print("Unrecognized model type %r." % model)
-        return
-    if model_file is not None:
-        with np.load(model_file) as f:
-            param_values = [f['arr_%d' % i] for i in range(len(f.files))]
-        lasagne.layers.set_all_param_values(network, param_values)
-    else:
-        assert False
+    net, net_output = model_io.load_model(model, model_file, nOutput, input_var)
 
     # middle_output = theano.function([input_var], net[layer_name].output)
     print("Getting middle output...")
@@ -107,7 +76,7 @@ def main():
     all_test_output = []
     all_test_y = []
     print('getting from train')
-    for batch in iterate_minibatches(X_train, y_train, batch_size, shuffle=False):
+    for batch in load_data.iterate_minibatches(X_train, y_train, batch_size, shuffle=False):
         print('.', end='', flush=True)
         inputs, targets = batch
         batch_output = get_output(inputs)  # a numpy ndarray
@@ -115,7 +84,7 @@ def main():
         all_train_y.extend(targets.tolist())
     print()
     print('getting from test')
-    for batch in iterate_minibatches(X_test, y_test, batch_size, shuffle=False):
+    for batch in load_data.iterate_minibatches(X_test, y_test, batch_size, shuffle=False):
         print('.', end='', flush=True)
         inputs, targets = batch
         batch_output = get_output(inputs)  # a numpy ndarray
