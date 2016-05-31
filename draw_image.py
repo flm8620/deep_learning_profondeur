@@ -96,7 +96,7 @@ def main():
     prediction = lasagne.layers.get_output(net_output)
 
     get_pred = theano.function([input_var], prediction)
-    pred = get_pred(np.array([X_set]))
+    pred = get_pred(np.array([X_set[imageID]]))
 
     width = 1
     while width * width < nKernel:
