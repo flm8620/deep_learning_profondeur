@@ -125,9 +125,11 @@ def main():
     else:
         weights = net[layer_name].W.get_value()
         print('weights shape :', weights.shape)
-        foo, nKernel, h, w = weights.shape
+        nKernel, foo, h, w = weights.shape
+        assert foo == 3
         flatten_w = net[layer_name].W.flatten(3)
         images_output = flatten_w.eval()
+        images_output = np.rollaxis(images_output, 1, 0)  # nKernel 3 w*h to 3 nKernel w*h
         print('flatten weights shape :', images_output.shape)
 
 
