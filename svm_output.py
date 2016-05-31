@@ -7,6 +7,12 @@ from sklearn import svm as svm
 from sklearn.decomposition import PCA
 import six.moves.cPickle as pickle
 import numpy
+import functools
+
+def log_and_print(text, logfile):
+    with open(logfile, 'a') as f:
+        f.write(text + '\n')
+        print(text)
 
 
 def main():
@@ -20,38 +26,41 @@ def main():
     datafile = args.datafile
     usePCA = args.pca
     nPCA = args.n_pca
+    save_file_name = 'svm_'+datafile + .'txt'
+    logfile = save_file_name + '_log.txt'
+    log_print = functools.partial(log_and_print, logfile=logfile)
 
-    print('--Parameters--')
-    print('  use PCA : ', usePCA)
+    log_print('--Parameters--')
+    log_print('  use PCA : {}'.format(usePCA))
     if usePCA:
-        print('    dim PCA = ', nPCA)
+        log_print('    dim PCA = {}'.format(nPCA))
     print()
 
-    print('loading ' + datafile + ' ... ')
+    log_print('loading ' + datafile + ' ... ')
     with open(datafile, 'rb') as f:
         [all_train_output, all_train_y, all_test_output, all_test_y] = pickle.load(f)
 
     assert len(all_train_output) == len(all_train_y)
     assert len(all_test_output) == len(all_test_y)
-    print('{} training examples'.format(len(all_train_y)))
-    print('{} testing examples'.format(len(all_test_y)))
-    print('data dimension : {}'.format(len(all_train_output[0])))
+    log_print('{} training examples'.format(len(all_train_y)))
+    log_print('{} testing examples'.format(len(all_test_y)))
+    log_print('data dimension : {}'.format(len(all_train_output[0])))
 
     if usePCA:
-        print('fitting PCA with ndim = {}'.format(nPCA))
+        log_print('fitting PCA with ndim = {}'.format(nPCA))
         pca = PCA(n_components=nPCA)
         pca.fit(all_train_output)
         all_train_output = pca.transform(all_train_output)
         all_test_output = pca.transform(all_test_output)
     else:
-        print('not using PCA')
+        log_print('not using PCA')
 
     lsvm = svm.LinearSVC()
 
-    print('fitting Linear SVM ...')
+    log_print('fitting Linear SVM ...')
     lsvm.fit(all_train_output, all_train_y)
 
-    print('testing Linear SVM ...')
+    log_print('testing Linear SVM ...')
     pre = lsvm.predict(all_test_output)
 
     wrong = 0
@@ -59,7 +68,7 @@ def main():
         if pre[i] != all_test_y[i]:
             wrong += 1
 
-    print('test acc :', wrong / float(len(pre)))
+        log_print('test acc : {}'.format(wrong / float(len(pre))))
 
 
 if __name__ == '__main__':
